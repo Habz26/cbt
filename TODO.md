@@ -1,0 +1,3 @@
+- [x] Add navigation bar with clickable question numbers above the questions
+- [x] Add gotoQuestion JavaScript function to jump to selected question
+- [ ] Test the navigation functionality by running the application
