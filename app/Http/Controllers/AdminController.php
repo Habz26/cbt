@@ -34,7 +34,7 @@ class AdminController extends Controller
             'option_b' => $r->option_b,
             'option_c' => $r->option_c,
             'option_d' => $r->option_d,
-            'correct_answer' => $r->correct_answer,
+            'correct_answer' => $r->type == 'essay' ? '-' : $r->correct_answer,
         ];
 
         if ($r->hasFile('image')) {
@@ -66,7 +66,7 @@ class AdminController extends Controller
             'option_b' => $r->option_b,
             'option_c' => $r->option_c,
             'option_d' => $r->option_d,
-            'correct_answer' => $r->correct_answer,
+            'correct_answer' => $r->type == 'essay' ? '-' : $r->correct_answer,
         ]);
 
         return redirect('/admin/soal')->with('success', 'Soal berhasil diupdate');

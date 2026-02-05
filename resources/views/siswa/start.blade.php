@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Ujian: {{ $exam->title }} - CBT UAS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -36,24 +37,24 @@
                         @if($q->type=='pg')
                             <div class="options">
                                 <div class="option">
-                                    <input type="radio" name="answers[{{ $q->id }}]" value="A" id="q{{ $q->id }}a">
+                                    <input type="radio" name="answers[{{ $q->id }}]" value="A" id="q{{ $q->id }}a" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'A' ? 'checked' : '' }}>
                                     <label for="q{{ $q->id }}a">A. {{ $q->option_a }}</label>
                                 </div>
                                 <div class="option">
-                                    <input type="radio" name="answers[{{ $q->id }}]" value="B" id="q{{ $q->id }}b">
+                                    <input type="radio" name="answers[{{ $q->id }}]" value="B" id="q{{ $q->id }}b" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'B' ? 'checked' : '' }}>
                                     <label for="q{{ $q->id }}b">B. {{ $q->option_b }}</label>
                                 </div>
                                 <div class="option">
-                                    <input type="radio" name="answers[{{ $q->id }}]" value="C" id="q{{ $q->id }}c">
+                                    <input type="radio" name="answers[{{ $q->id }}]" value="C" id="q{{ $q->id }}c" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'C' ? 'checked' : '' }}>
                                     <label for="q{{ $q->id }}c">C. {{ $q->option_c }}</label>
                                 </div>
                                 <div class="option">
-                                    <input type="radio" name="answers[{{ $q->id }}]" value="D" id="q{{ $q->id }}d">
+                                    <input type="radio" name="answers[{{ $q->id }}]" value="D" id="q{{ $q->id }}d" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'D' ? 'checked' : '' }}>
                                     <label for="q{{ $q->id }}d">D. {{ $q->option_d }}</label>
                                 </div>
                             </div>
                         @else
-                            <textarea name="answers[{{ $q->id }}]" class="form-control" rows="4" placeholder="Jawaban Anda"></textarea>
+                            <textarea name="answers[{{ $q->id }}]" class="form-control" rows="4" placeholder="Jawaban Anda">{{ isset($existingResult->progress[$q->id]) ? $existingResult->progress[$q->id] : '' }}</textarea>
                         @endif
 
                         <div class="mt-3">
@@ -110,10 +111,70 @@
             }
         }
 
+        // save progress
+        function saveProgress(){
+            let formData = new FormData(examForm);
+            let answers = {};
+            for (let [key, value] of formData.entries()) {
+                if (key.startsWith('answers[')) {
+                    let qid = key.match(/answers\[(\d+)\]/)[1];
+                    answers[qid] = value;
+                }
+            }
+            fetch('/siswa/ujian/{{ $exam->id }}/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ answers: answers })
+            });
+        }
+
+        // save every 30 seconds
+        setInterval(saveProgress, 30000);
+
+        // save on input change
+        document.querySelectorAll('input[type="radio"], textarea').forEach(el => {
+            el.addEventListener('change', saveProgress);
+        });
+
         // anti refresh / close tab
         window.onbeforeunload = function(){
             return "Ujian sedang berlangsung! Pastikan submit sebelum keluar.";
         }
+
+        // load saved progress
+        const savedProgress = @json($existingResult->progress ?? []);
+        for (const [qid, ans] of Object.entries(savedProgress)) {
+            const input = document.querySelector(`input[name="answers[${qid}]"][value="${ans}"]`);
+            if (input) input.checked = true;
+        }
+
+        // save progress every 30 seconds and on change
+        function saveProgress() {
+            const formData = new FormData(examForm);
+            const answers = {};
+            for (let [key, value] of formData.entries()) {
+                if (key.startsWith('answers[')) {
+                    const qid = key.match(/answers\[(\d+)\]/)[1];
+                    answers[qid] = value;
+                }
+            }
+            fetch('/siswa/ujian/{{ $exam->id }}/save-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ answers })
+            });
+        }
+
+        setInterval(saveProgress, 30000);
+        document.querySelectorAll('input[type="radio"]').forEach(input => {
+            input.addEventListener('change', saveProgress);
+        });
     </script>
 </body>
 </html>

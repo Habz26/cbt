@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [ExamController::class, 'index']);
             Route::get('/ujian/{id}', [ExamController::class, 'start']);
             Route::post('/ujian/{id}', [ExamController::class, 'submit']);
+            Route::post('/ujian/{id}/save-progress', [ExamController::class, 'saveProgress']);
             Route::get('/result/{examId}', [ExamController::class, 'result']);
         });
 });

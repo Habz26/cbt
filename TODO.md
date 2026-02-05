@@ -1,3 +1,6 @@
-- [x] Add navigation bar with clickable question numbers above the questions
-- [x] Add gotoQuestion JavaScript function to jump to selected question
-- [ ] Test the navigation functionality by running the application
+- [x] Add progress field to results table migration
+- [x] Update Result model to include progress field
+- [x] Modify ExamController start method to load saved progress
+- [x] Modify ExamController submit method to validate all questions answered
+- [x] Update start.blade.php to save progress periodically and load saved answers
+- [x] Test the implementation
