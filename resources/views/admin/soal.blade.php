@@ -154,6 +154,19 @@
 
                 <button type="submit" class="btn btn-primary">Simpan</button>
                 </form>
+
+                <hr>
+
+                <h4>Import dari Excel</h4>
+                <form method="POST" action="/admin/soal" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <label>File Excel:</label>
+                        <input type="file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Import Soal</button>
+                </form>
+                <p class="text-muted">Format Excel: Kolom harus memiliki header: exam_id, type, question, option_a, option_b, option_c, option_d, correct_answer</p>
             </div>
         </div>
 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Exam;
 use App\Models\Question;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\QuestionImport;
 
 class AdminController extends Controller
 {
@@ -26,25 +28,32 @@ class AdminController extends Controller
 
     public function storeSoal(Request $r)
     {
-        $data = [
-            'exam_id' => $r->exam_id,
-            'type' => $r->type,
-            'question' => $r->question,
-            'option_a' => $r->option_a,
-            'option_b' => $r->option_b,
-            'option_c' => $r->option_c,
-            'option_d' => $r->option_d,
-            'correct_answer' => $r->type == 'essay' ? '-' : $r->correct_answer,
-        ];
+        if ($r->hasFile('excel_file')) {
+            // Import from Excel
+            Excel::import(new QuestionImport, $r->file('excel_file'));
+            return back()->with('success', 'Soal berhasil diimpor dari Excel');
+        } else {
+            // Manual input
+            $data = [
+                'exam_id' => $r->exam_id,
+                'type' => $r->type,
+                'question' => $r->question,
+                'option_a' => $r->option_a,
+                'option_b' => $r->option_b,
+                'option_c' => $r->option_c,
+                'option_d' => $r->option_d,
+                'correct_answer' => $r->type == 'essay' ? '-' : $r->correct_answer,
+            ];
 
-        if ($r->hasFile('image')) {
-            $imagePath = $r->file('image')->store('questions', 'public');
-            $data['image'] = $imagePath;
+            if ($r->hasFile('image')) {
+                $imagePath = $r->file('image')->store('questions', 'public');
+                $data['image'] = $imagePath;
+            }
+
+            Question::create($data);
+
+            return back();
         }
-
-        Question::create($data);
-
-        return back();
     }
 
     public function editSoal($id)
