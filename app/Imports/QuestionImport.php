@@ -23,6 +23,7 @@ class QuestionImport implements ToModel, WithHeadingRow
             'option_b' => $row['option_b'] ?? null,
             'option_c' => $row['option_c'] ?? null,
             'option_d' => $row['option_d'] ?? null,
+            'option_e' => $row['option_e'] ?? null,
             'correct_answer' => $row['type'] == 'essay' ? '-' : ($row['correct_answer'] ?? null),
         ]);
     }

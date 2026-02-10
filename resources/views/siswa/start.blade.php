@@ -30,30 +30,75 @@
         <form method="POST" id="examForm">
             @csrf
             @foreach($exam->questions as $index => $q)
-                <div class="question card mb-3 {{ $index == 0 ? 'active' : '' }}" data-index="{{ $index }}">
+                <div class="question card mb-3 {{ $loop->first ? 'active' : '' }}" data-index="{{ $loop->index }}">
                     <div class="card-body">
                         <h5>{{ $index+1 }}. {{ $q->question }}</h5>
+                        @if ($q->image)
+                            <img src="{{ asset('storage/' . $q->image) }}" alt="Gambar Soal" class="img-thumbnail mb-2" style="max-width: 400px;">
+                        @endif
 
                         @if($q->type=='pg')
                             <div class="options">
                                 <div class="option">
                                     <input type="radio" name="answers[{{ $q->id }}]" value="A" id="q{{ $q->id }}a" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'A' ? 'checked' : '' }}>
-                                    <label for="q{{ $q->id }}a">A. {{ $q->option_a }}</label>
+                                    <label for="q{{ $q->id }}a" @if($q->option_a_image) style="display: flex; align-items: flex-start;" @endif>
+                                        @if($q->option_a_image)
+                                            <span>A. {{ $q->option_a }}</span>
+                                            <img src="{{ asset('storage/' . $q->option_a_image) }}" alt="Gambar Opsi A" class="img-fluid ml-2" style="max-width: 150px;">
+                                        @else
+                                            A. {{ $q->option_a }}
+                                        @endif
+                                    </label>
                                 </div>
                                 <div class="option">
                                     <input type="radio" name="answers[{{ $q->id }}]" value="B" id="q{{ $q->id }}b" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'B' ? 'checked' : '' }}>
-                                    <label for="q{{ $q->id }}b">B. {{ $q->option_b }}</label>
+                                    <label for="q{{ $q->id }}b" @if($q->option_b_image) style="display: flex; align-items: flex-start;" @endif>
+                                        @if($q->option_b_image)
+                                            <span>B. {{ $q->option_b }}</span>
+                                            <img src="{{ asset('storage/' . $q->option_b_image) }}" alt="Gambar Opsi B" class="img-fluid ml-2" style="max-width: 150px;">
+                                        @else
+                                            B. {{ $q->option_b }}
+                                        @endif
+                                    </label>
                                 </div>
                                 <div class="option">
                                     <input type="radio" name="answers[{{ $q->id }}]" value="C" id="q{{ $q->id }}c" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'C' ? 'checked' : '' }}>
-                                    <label for="q{{ $q->id }}c">C. {{ $q->option_c }}</label>
+                                    <label for="q{{ $q->id }}c" @if($q->option_c_image) style="display: flex; align-items: flex-start;" @endif>
+                                        @if($q->option_c_image)
+                                            <span>C. {{ $q->option_c }}</span>
+                                            <img src="{{ asset('storage/' . $q->option_c_image) }}" alt="Gambar Opsi C" class="img-fluid ml-2" style="max-width: 150px;">
+                                        @else
+                                            C. {{ $q->option_c }}
+                                        @endif
+                                    </label>
                                 </div>
                                 <div class="option">
                                     <input type="radio" name="answers[{{ $q->id }}]" value="D" id="q{{ $q->id }}d" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'D' ? 'checked' : '' }}>
-                                    <label for="q{{ $q->id }}d">D. {{ $q->option_d }}</label>
+                                    <label for="q{{ $q->id }}d" @if($q->option_d_image) style="display: flex; align-items: flex-start;" @endif>
+                                        @if($q->option_d_image)
+                                            <span>D. {{ $q->option_d }}</span>
+                                            <img src="{{ asset('storage/' . $q->option_d_image) }}" alt="Gambar Opsi D" class="img-fluid ml-2" style="max-width: 150px;">
+                                        @else
+                                            D. {{ $q->option_d }}
+                                        @endif
+                                    </label>
                                 </div>
+                                @if($q->option_e)
+                                    <div class="option">
+                                        <input type="radio" name="answers[{{ $q->id }}]" value="E" id="q{{ $q->id }}e" {{ isset($existingResult->progress[$q->id]) && $existingResult->progress[$q->id] == 'E' ? 'checked' : '' }}>
+                                        <label for="q{{ $q->id }}e" @if($q->option_e_image) style="display: flex; align-items: flex-start;" @endif>
+                                            @if($q->option_e_image)
+                                                <span>E. {{ $q->option_e }}</span>
+                                                <img src="{{ asset('storage/' . $q->option_e_image) }}" alt="Gambar Opsi E" class="img-fluid ml-2" style="max-width: 150px;">
+                                            @else
+                                                E. {{ $q->option_e }}
+                                            @endif
+                                        </label>
+                                    </div>
+                                @endif
                             </div>
-                        @else
+                        @endif
+                        @if ($q->essay)
                             <textarea name="answers[{{ $q->id }}]" class="form-control" rows="4" placeholder="Jawaban Anda">{{ isset($existingResult->progress[$q->id]) ? $existingResult->progress[$q->id] : '' }}</textarea>
                         @endif
 

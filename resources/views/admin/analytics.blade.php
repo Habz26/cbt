@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - CBT UAS</title>
+    <title>Analytics - Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #f8f9fa; }
-        .card { margin: 20px 0; }
+        .card { margin: 20px; }
         .navbar {
             background: linear-gradient(135deg, #343a40 0%, #495057 100%);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -20,7 +20,6 @@
         }
         .nav-link {
             transition: all 0.3s ease;
-            position: relative;
         }
         .nav-link:hover {
             background-color: rgba(255, 255, 255, 0.1);
@@ -29,10 +28,6 @@
         .nav-link.active {
             background-color: #007bff;
             border-radius: 5px;
-        }
-        .btn-outline-light:hover {
-            background-color: #dc3545;
-            border-color: #dc3545;
         }
     </style>
 </head>
@@ -46,7 +41,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/admin">Dashboard</a>
+                        <a class="nav-link" href="/admin">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/soal">Kelola Soal</a>
@@ -58,7 +53,7 @@
                         <a class="nav-link" href="/admin/users">Kelola User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/analytics">Analytics</a>
+                        <a class="nav-link active" href="/admin/analytics">Analytics</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
@@ -74,49 +69,101 @@
             </div>
         </div>
     </nav>
+
     <div class="container">
-        <h2 class="mt-4">Dashboard Admin</h2>
+        <h2 class="mt-4">Analytics</h2>
 
         <div class="row">
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total Ujian</h5>
-                        <p class="card-text display-4">{{ $exams }}</p>
+                        <p class="card-text display-4">{{ $examCount }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total Soal</h5>
-                        <p class="card-text display-4">{{ $questions }}</p>
+                        <p class="card-text display-4">{{ $questionCount }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total User</h5>
-                        <p class="card-text display-4">{{ $users }}</p>
+                        <p class="card-text display-4">{{ $userCount }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total Hasil</h5>
-                        <p class="card-text display-4">{{ $results }}</p>
+                        <p class="card-text display-4">{{ $resultCount }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-4">
-            <a href="/admin/soal" class="btn btn-primary me-2">Kelola Soal</a>
-            <a href="/admin/exam" class="btn btn-secondary me-2">Kelola Ujian</a>
-            <a href="/admin/results" class="btn btn-info">Monitoring Hasil</a>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Soal per Ujian</h5>
+                        <canvas id="examChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">User per Role</h5>
+                        <canvas id="userChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        const examCtx = document.getElementById('examChart').getContext('2d');
+        const examChart = new Chart(examCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($examStats->pluck('title')),
+                datasets: [{
+                    label: 'Jumlah Soal',
+                    data: @json($examStats->pluck('questions_count')),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const userCtx = document.getElementById('userChart').getContext('2d');
+        const userChart = new Chart(userCtx, {
+            type: 'pie',
+            data: {
+                labels: @json($userStats->pluck('role')),
+                datasets: [{
+                    data: @json($userStats->pluck('count')),
+                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                    borderWidth: 1
+                }]
+            }
+        });
+    </script>
 </body>
 </html>

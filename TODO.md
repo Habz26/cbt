@@ -1,6 +1,4 @@
-- [x] Add progress field to results table migration
-- [x] Update Result model to include progress field
-- [x] Modify ExamController start method to load saved progress
-- [x] Modify ExamController submit method to validate all questions answered
-- [x] Update start.blade.php to save progress periodically and load saved answers
-- [x] Test the implementation
+- [x] Enlarge the main question image by changing max-width from 200px to 400px
+- [x] Adjust option layouts: For text-only options, use original layout; for options with images, keep images next to letters with flex-start alignment
+- [x] Slightly enlarge content on all student views (text, buttons, images) for easier reading
+- [x] Test the updated layout changes

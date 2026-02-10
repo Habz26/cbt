@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - CBT UAS</title>
+    <title>Jadwal Ujian - Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; }
-        .card { margin: 20px 0; }
+        .card { margin: 20px; }
         .navbar {
             background: linear-gradient(135deg, #343a40 0%, #495057 100%);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -20,7 +19,6 @@
         }
         .nav-link {
             transition: all 0.3s ease;
-            position: relative;
         }
         .nav-link:hover {
             background-color: rgba(255, 255, 255, 0.1);
@@ -30,9 +28,8 @@
             background-color: #007bff;
             border-radius: 5px;
         }
-        .btn-outline-light:hover {
-            background-color: #dc3545;
-            border-color: #dc3545;
+        .exam-card {
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -46,7 +43,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/admin">Dashboard</a>
+                        <a class="nav-link" href="/admin">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/soal">Kelola Soal</a>
@@ -61,7 +58,7 @@
                         <a class="nav-link" href="/admin/analytics">Analytics</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
+                        <a class="nav-link active" href="/admin/schedule">Jadwal Ujian</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/results">Monitoring Hasil</a>
@@ -74,48 +71,26 @@
             </div>
         </div>
     </nav>
+
     <div class="container">
-        <h2 class="mt-4">Dashboard Admin</h2>
+        <h2 class="mt-4">Jadwal Ujian</h2>
 
         <div class="row">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Ujian</h5>
-                        <p class="card-text display-4">{{ $exams }}</p>
+            @foreach($exams as $exam)
+                <div class="col-md-6 exam-card">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $exam->title }}</h5>
+                            <p class="card-text">
+                                <strong>Durasi:</strong> {{ $exam->duration }} menit<br>
+                                <strong>Mulai:</strong> {{ $exam->start_time }}<br>
+                                <strong>Selesai:</strong> {{ $exam->end_time }}
+                            </p>
+                            <a href="/admin/exam/{{ $exam->id }}/edit" class="btn btn-primary">Edit Jadwal</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Soal</h5>
-                        <p class="card-text display-4">{{ $questions }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total User</h5>
-                        <p class="card-text display-4">{{ $users }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Hasil</h5>
-                        <p class="card-text display-4">{{ $results }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-4">
-            <a href="/admin/soal" class="btn btn-primary me-2">Kelola Soal</a>
-            <a href="/admin/exam" class="btn btn-secondary me-2">Kelola Ujian</a>
-            <a href="/admin/results" class="btn btn-info">Monitoring Hasil</a>
+            @endforeach
         </div>
     </div>
 </body>

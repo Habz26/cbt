@@ -123,18 +123,27 @@
                         <div class="form-group">
                             <label>Opsi A:</label>
                             <input type="text" name="option_a" class="form-control">
+                            <input type="file" name="option_a_image" class="form-control mt-1" accept="image/*">
                         </div>
                         <div class="form-group">
                             <label>Opsi B:</label>
                             <input type="text" name="option_b" class="form-control">
+                            <input type="file" name="option_b_image" class="form-control mt-1" accept="image/*">
                         </div>
                         <div class="form-group">
                             <label>Opsi C:</label>
                             <input type="text" name="option_c" class="form-control">
+                            <input type="file" name="option_c_image" class="form-control mt-1" accept="image/*">
                         </div>
                         <div class="form-group">
                             <label>Opsi D:</label>
                             <input type="text" name="option_d" class="form-control">
+                            <input type="file" name="option_d_image" class="form-control mt-1" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label>Opsi E:</label>
+                            <input type="text" name="option_e" class="form-control">
+                            <input type="file" name="option_e_image" class="form-control mt-1" accept="image/*">
                         </div>
                     <div class="form-group">
                         <label>Jawaban Benar:</label>
@@ -143,6 +152,7 @@
                             <option value="B">B</option>
                             <option value="C">C</option>
                             <option value="D">D</option>
+                            <option value="E">E</option>
                         </select>
                     </div>
                 </div>
@@ -166,7 +176,7 @@
                     </div>
                     <button type="submit" class="btn btn-success">Import Soal</button>
                 </form>
-                <p class="text-muted">Format Excel: Kolom harus memiliki header: exam_id, type, question, option_a, option_b, option_c, option_d, correct_answer</p>
+                <p class="text-muted">Format Excel: Kolom harus memiliki header: exam_id, type, question, option_a, option_b, option_c, option_d, option_e, correct_answer</p>
             </div>
         </div>
 
@@ -186,6 +196,9 @@
                                 <p>B: {{ $q->option_b }}</p>
                                 <p>C: {{ $q->option_c }}</p>
                                 <p>D: {{ $q->option_d }}</p>
+                                @if($q->option_e)
+                                    <p>E: {{ $q->option_e }}</p>
+                                @endif
                                 <p><strong>Jawaban: {{ $q->correct_answer }}</strong></p>
                             @else
                                 <p><strong>Jawaban: -</strong></p>

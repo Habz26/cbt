@@ -6,8 +6,11 @@
     <title>Hasil Ujian - CBT UAS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
+        body { background-color: #f8f9fa; font-size: 1.1em; }
         .card { margin: 20px 0; }
+        .card-title { font-size: 1.3em; }
+        .card-text { font-size: 1.1em; }
+        .btn { font-size: 1.1em; padding: 10px 20px; }
     </style>
 </head>
 <body>

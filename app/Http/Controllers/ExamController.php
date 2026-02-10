@@ -38,11 +38,20 @@ class ExamController extends Controller
                                 ->where('exam_id', $id)
                                 ->first();
 
-        if ($existingResult) {
+        if ($existingResult && $existingResult->score !== null) {
             return redirect('/siswa')->with('error', 'Anda sudah mengerjakan ujian ini sebelumnya.');
         }
 
-        return view('siswa.start', compact('exam'));
+        // jika belum ada result, buat baru untuk menyimpan progress
+        if (!$existingResult) {
+            $existingResult = Result::create([
+                'user_id' => auth()->id(),
+                'exam_id' => $id,
+                'progress' => []
+            ]);
+        }
+
+        return view('siswa.start', compact('exam', 'existingResult'));
     }
 
     public function submit(Request $r, $id)
@@ -86,5 +95,21 @@ class ExamController extends Controller
                         ->firstOrFail();
 
         return view('siswa.result', compact('result'));
+    }
+
+    public function saveProgress(Request $request, $id)
+    {
+        $request->validate([
+            'answers' => 'required|array'
+        ]);
+
+        $result = Result::where('user_id', auth()->id())
+                        ->where('exam_id', $id)
+                        ->firstOrFail();
+
+        $result->progress = $request->answers;
+        $result->save();
+
+        return response()->json(['status' => 'success']);
     }
 }

@@ -46,18 +46,52 @@
                         <div class="mb-3">
                             <label class="form-label">Opsi A</label>
                             <input type="text" name="option_a" class="form-control" value="{{ $question->option_a }}">
+                            <input type="file" name="option_a_image" class="form-control mt-1" accept="image/*">
+                            @if($question->option_a_image)
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $question->option_a_image) }}" alt="Gambar Opsi A" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            @endif
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Opsi B</label>
                             <input type="text" name="option_b" class="form-control" value="{{ $question->option_b }}">
+                            <input type="file" name="option_b_image" class="form-control mt-1" accept="image/*">
+                            @if($question->option_b_image)
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $question->option_b_image) }}" alt="Gambar Opsi B" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            @endif
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Opsi C</label>
                             <input type="text" name="option_c" class="form-control" value="{{ $question->option_c }}">
+                            <input type="file" name="option_c_image" class="form-control mt-1" accept="image/*">
+                            @if($question->option_c_image)
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $question->option_c_image) }}" alt="Gambar Opsi C" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            @endif
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Opsi D</label>
                             <input type="text" name="option_d" class="form-control" value="{{ $question->option_d }}">
+                            <input type="file" name="option_d_image" class="form-control mt-1" accept="image/*">
+                            @if($question->option_d_image)
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $question->option_d_image) }}" alt="Gambar Opsi D" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            @endif
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Opsi E</label>
+                            <input type="text" name="option_e" class="form-control" value="{{ $question->option_e }}">
+                            <input type="file" name="option_e_image" class="form-control mt-1" accept="image/*">
+                            @if($question->option_e_image)
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $question->option_e_image) }}" alt="Gambar Opsi E" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            @endif
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Jawaban Benar</label>
@@ -66,6 +100,7 @@
                                 <option value="B" {{ $question->correct_answer == 'B' ? 'selected' : '' }}>B</option>
                                 <option value="C" {{ $question->correct_answer == 'C' ? 'selected' : '' }}>C</option>
                                 <option value="D" {{ $question->correct_answer == 'D' ? 'selected' : '' }}>D</option>
+                                <option value="E" {{ $question->correct_answer == 'E' ? 'selected' : '' }}>E</option>
                             </select>
                         </div>
                     @endif
