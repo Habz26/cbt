@@ -63,7 +63,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin">Dashboard</a>
+                        <a class="nav-link active" href="/admin">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/soal">Kelola Soal</a>
@@ -72,7 +72,16 @@
                         <a class="nav-link" href="/admin/exam">Kelola Ujian</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/admin/results">Monitoring Hasil</a>
+                        <a class="nav-link" href="/admin/users">Kelola User</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/analytics">Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/results">Monitoring Hasil</a>
                     </li>
                 </ul>
                 <form method="POST" action="/logout" class="d-flex">

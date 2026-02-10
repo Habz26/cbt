@@ -249,7 +249,36 @@ class AdminController extends Controller
         $examStats = Exam::withCount('questions')->get();
         $userStats = User::selectRaw('role, count(*) as count')->groupBy('role')->get();
 
-        return view('admin.analytics', compact('examCount', 'questionCount', 'userCount', 'resultCount', 'examStats', 'userStats'));
+        // Student Analytics
+        $studentResults = \App\Models\Result::with(['user', 'exam'])->get()->groupBy('user_id');
+        $studentAnalytics = [];
+        foreach ($studentResults as $userId => $results) {
+            $user = $results->first()->user;
+            $totalExams = $results->count();
+            $totalScore = $results->sum('score');
+            $averageScore = $totalExams > 0 ? round($totalScore / $totalExams, 2) : 0;
+
+            // Calculate total correct answers
+            $totalCorrect = 0;
+            foreach ($results as $result) {
+                $totalCorrect += $result->score ?? 0;
+            }
+
+            $studentAnalytics[] = [
+                'user' => $user,
+                'totalExams' => $totalExams,
+                'totalScore' => $totalScore,
+                'averageScore' => $averageScore,
+                'totalCorrect' => $totalCorrect,
+            ];
+        }
+
+        // Prepare data for charts
+        $studentNames = collect($studentAnalytics)->pluck('user.name');
+        $studentAverageScores = collect($studentAnalytics)->pluck('averageScore');
+        $studentTotalCorrect = collect($studentAnalytics)->pluck('totalCorrect');
+
+        return view('admin.analytics', compact('examCount', 'questionCount', 'userCount', 'resultCount', 'examStats', 'userStats', 'studentAnalytics', 'studentNames', 'studentAverageScores', 'studentTotalCorrect'));
     }
 
     // Exam Schedule

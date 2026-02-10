@@ -69,13 +69,22 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin">Dashboard</a>
+                        <a class="nav-link active" href="/admin">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/admin/soal">Kelola Soal</a>
+                        <a class="nav-link" href="/admin/soal">Kelola Soal</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/exam">Kelola Ujian</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/users">Kelola User</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/analytics">Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/results">Monitoring Hasil</a>
@@ -187,7 +196,7 @@
                 <div class="col-md-6 question-card" data-exam-id="{{ $q->exam_id }}">
                     <div class="card mb-3">
                         <div class="card-body">
-                            <h5>{{ $q->question }}</h5>
+                            <h5>{{ $loop->iteration }}. {{ $q->question }}</h5>
                             @if($q->image)
                                 <img src="{{ asset('storage/' . $q->image) }}" alt="Gambar Soal" class="img-thumbnail mb-2" style="max-width: 200px;">
                             @endif

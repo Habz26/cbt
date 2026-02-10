@@ -126,6 +126,40 @@
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Analytics Siswa</h5>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nama Siswa</th>
+                                    <th>Email</th>
+                                    <th>Total Ujian</th>
+                                    <th>Total Skor</th>
+                                    <th>Rata-rata Skor</th>
+                                    <th>Jumlah Soal Benar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($studentAnalytics as $analytics)
+                                    <tr>
+                                        <td>{{ $analytics['user']->name }}</td>
+                                        <td>{{ $analytics['user']->email }}</td>
+                                        <td>{{ $analytics['totalExams'] }}</td>
+                                        <td>{{ $analytics['totalScore'] }}</td>
+                                        <td>{{ $analytics['averageScore'] }}</td>
+                                        <td>{{ $analytics['totalCorrect'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -162,6 +196,50 @@
                     borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
                     borderWidth: 1
                 }]
+            }
+        });
+
+        const studentScoreCtx = document.getElementById('studentScoreChart').getContext('2d');
+        const studentScoreChart = new Chart(studentScoreCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($studentNames),
+                datasets: [{
+                    label: 'Rata-rata Skor',
+                    data: @json($studentAverageScores),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const studentCorrectCtx = document.getElementById('studentCorrectChart').getContext('2d');
+        const studentCorrectChart = new Chart(studentCorrectCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($studentNames),
+                datasets: [{
+                    label: 'Jumlah Soal Benar',
+                    data: @json($studentTotalCorrect),
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
         });
     </script>
