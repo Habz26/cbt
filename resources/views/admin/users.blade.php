@@ -26,7 +26,7 @@
         }
         .nav-link.active {
             background-color: #007bff;
-            border-radius: 5px;
+            border-radius: 5px; 
         }
     </style>
 </head>
@@ -80,6 +80,10 @@
                         <div class="col-md-3">
                             <label>Nama:</label>
                             <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Username:</label>
+                            <input type="text" name="username" class="form-control" required>
                         </div>
                         <div class="col-md-3">
                             <label>Email:</label>

@@ -56,7 +56,7 @@
                 <div class="login-card">
                     <div class="card shadow">
                         <div class="card-body p-5">
-                            <h3 class="card-title text-center">CBT PPDB <br>SMK AL-FALAH NAGREG</h3>
+                            <h3 class="card-title text-center">CBT SPMB <br>SMK AL-FALAH NAGREG</h3>
                             <form method="POST" action="/login">
                                 @csrf
                                 <div class="mb-4">

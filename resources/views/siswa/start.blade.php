@@ -13,6 +13,10 @@
         .timer { font-size: 1.2em; font-weight: bold; color: red; }
         .options { margin: 10px 0; }
         .option { margin: 5px 0; }
+        .question h5 { font-size: 1.5em; }
+        .option label { font-size: 1.2em; }
+        .question-nav { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; }
+        .question-nav button { border: 1px solid #ccc; padding: 5px 10px; width: 100%; }
     </style>
 </head>
 <body>
@@ -21,10 +25,16 @@
 
         <div id="timer" class="timer alert alert-warning"></div>
 
-        <div class="question-nav mb-3 d-flex flex-wrap">
-            @for($i = 0; $i < count($exam->questions); $i++)
-                <button type="button" class="btn btn-outline-primary me-1" onclick="gotoQuestion({{ $i }})">{{ $i+1 }}</button>
-            @endfor
+        <button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#questionNav" aria-expanded="false" aria-controls="questionNav">
+            Preview Halaman
+        </button>
+
+        <div id="questionNav" class="collapse">
+            <div class="question-nav mb-3">
+                @for($i = 0; $i < count($exam->questions); $i++)
+                    <button type="button" class="btn btn-outline-primary" onclick="gotoQuestion({{ $i }})">{{ $i+1 }}</button>
+                @endfor
+            </div>
         </div>
 
         <form method="POST" id="examForm">
@@ -118,6 +128,7 @@
         </form>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let duration = {{ $exam->duration }} * 60;
         let timerDiv = document.getElementById('timer');
