@@ -36,19 +36,19 @@ Ekstensi ZIP wajib aktif karena Composer membutuhkan dukungan ZIP untuk mengekst
 
 ```bash
 composer install
-3. Install Dependency Frontend
+## 3. Install Dependency Frontend
 npm install
 npm run build
 Atau bisa langsung:
 
 npm install && npm run build
-4. Konfigurasi Environment
+## 4. Konfigurasi Environment
 cp .env.example .env
 php artisan key:generate
 Atur konfigurasi database pada file .env, lalu jalankan:
 
 php artisan migrate
-5. Jalankan Aplikasi
+## 5. Jalankan Aplikasi
 php artisan serve
 🧩 Alur Sistem
 👨‍🎓 ROLE: STUDENT
