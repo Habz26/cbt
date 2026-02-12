@@ -36,6 +36,7 @@ Ekstensi ZIP wajib aktif karena Composer membutuhkan dukungan ZIP untuk mengekst
 
 ```bash
 composer install
+```
 ## 3. Install Dependency Frontend
 npm install
 npm run build
