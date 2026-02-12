@@ -60,7 +60,7 @@ php artisan key:generate
 ```bash
 php artisan serve
 ```
-🧩 Alur Sistem
+## 🧩 Alur Sistem
 👨‍🎓 ROLE: STUDENT
 1. Login
 Student login menggunakan akun yang sudah dibuatkan oleh admin berupa:
@@ -135,7 +135,7 @@ Status berubah menjadi "Sudah Dikerjakan"
 👨‍💼 ROLE: ADMIN
 Admin memiliki beberapa menu utama pada navbar:
 
-📊 Dashboard Admin
+## 📊 Dashboard Admin
 Menampilkan card statistik:
 
 Total Ujian
@@ -170,7 +170,7 @@ Rata-rata Skor
 
 Jumlah Soal Benar
 
-📝 Kelola Soal
+## 📝 Kelola Soal
 Field Input:
 
 Pilih Ujian (berdasarkan data ujian yang sudah dibuat)
@@ -203,7 +203,7 @@ Fitur Edit
 
 Fitur Hapus
 
-🗂 Kelola Ujian
+## 🗂 Kelola Ujian
 Field:
 
 Nama Ujian
@@ -226,7 +226,7 @@ Edit
 
 Hapus
 
-👥 Kelola User
+## 👥 Kelola User
 Field:
 
 Nama
@@ -264,7 +264,7 @@ Waktu Selesai
 
 Tombol Edit Jadwal
 
-📈 Monitoring Hasil
+## 📈 Monitoring Hasil
 Menampilkan tabel:
 
 Nama Siswa
@@ -289,7 +289,7 @@ Jawaban Benar
 
 Tersedia tombol Logout.
 
-🎯 Tujuan Sistem
+## 🎯 Tujuan Sistem
 CBT SPMB dibuat untuk:
 
 Mempermudah proses seleksi siswa baru
@@ -302,6 +302,6 @@ Memberikan monitoring hasil secara terstruktur
 
 Mendukung digitalisasi sistem ujian di SMK Al-Falah
 
-🏫 Digunakan Oleh
-SMK Al-Falah
+## 🏫 Digunakan Oleh
+SMK Al-Falah Nagreg
 Untuk kebutuhan Seleksi Penerimaan Murid Baru berbasis Computer Based Test.
