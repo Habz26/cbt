@@ -17,18 +17,18 @@ Sebelum menjalankan `composer install`, pastikan ekstensi **zip** pada PHP sudah
 Langkah:
 1. Buka file `php.ini`
 2. Cari baris berikut:
-
+```bash
 ;extension=zip
-
+```
 
 3. Hapus tanda `;` sehingga menjadi:
-
+```bash
 extension=zip
-
+```
 
 4. Simpan file lalu restart web server (Apache / XAMPP / Laragon / dll)
 
-Ekstensi ZIP wajib aktif karena Composer membutuhkan dukungan ZIP untuk mengekstrak dependency.
+Ekstensi ZIP wajib aktif karena Composer membutuhkan dukungan ZIP untuk menginstall package maatwebsite/excel.
 
 ---
 
