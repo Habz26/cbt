@@ -79,9 +79,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/users">Kelola User</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/analytics">Analytics</a>
-                    </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
                     </li>

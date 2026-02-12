@@ -1,4 +1,6 @@
-- [x] Enlarge the main question image by changing max-width from 200px to 400px
-- [x] Adjust option layouts: For text-only options, use original layout; for options with images, keep images next to letters with flex-start alignment
-- [x] Slightly enlarge content on all student views (text, buttons, images) for easier reading
-- [x] Test the updated layout changes
+# TODO: Filter Student Analytics per Exam
+
+## Steps to Complete
+- [x] Update AdminController.php index() method to calculate analytics per exam per student
+- [x] Modify dashboard.blade.php to display data per exam in table and charts
+- [x] Test the dashboard to ensure correct display and calculations

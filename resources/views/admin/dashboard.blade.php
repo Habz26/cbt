@@ -6,6 +6,7 @@
     <title>Dashboard Admin - CBT SPMB</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #f8f9fa; }
         .card { margin: 20px 0; }
@@ -57,9 +58,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/users">Kelola User</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/analytics">Analytics</a>
-                    </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
                     </li>
@@ -79,44 +78,262 @@
 
         <div class="row">
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total Ujian</h5>
-                        <p class="card-text display-4">{{ $exams }}</p>
+                        <p class="card-text display-4">{{ $examCount }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total Soal</h5>
-                        <p class="card-text display-4">{{ $questions }}</p>
+                        <p class="card-text display-4">{{ $questionCount }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total User</h5>
-                        <p class="card-text display-4">{{ $users }}</p>
+                        <p class="card-text display-4">{{ $userCount }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card">
+                <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Total Hasil</h5>
-                        <p class="card-text display-4">{{ $results }}</p>
+                        <p class="card-text display-4">{{ $resultCount }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-4">
-            <a href="/admin/soal" class="btn btn-primary me-2">Kelola Soal</a>
-            <a href="/admin/exam" class="btn btn-secondary me-2">Kelola Ujian</a>
-            <a href="/admin/results" class="btn btn-info">Monitoring Hasil</a>
+        <div class="row">
+            <div class="col-md-6 d-flex flex-column gap-3">
+                <div class="card flex-fill" style="margin: 0;">
+                    <div class="card-body">
+                        <h5 class="card-title">Rata-rata Skor Siswa</h5>
+                        <canvas id="studentScoreChart"></canvas>
+                    </div>
+                </div>
+                <div class="card flex-fill" style="margin: 0;">
+                    <div class="card-body">
+                        <h5 class="card-title">Jumlah Soal Benar Siswa</h5>
+                        <canvas id="studentCorrectChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100" style="margin: 0;">
+                    <div class="card-body">
+                        <h5 class="card-title">User per Role</h5>
+                        <canvas id="userChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Soal per Ujian</h5>
+                        <canvas id="examChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Analytics Siswa</h5>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nama Siswa</th>
+                                    <th>Email</th>
+                                    <th>Total Ujian</th>
+                                    <th>Total Skor</th>
+                                    <th>Rata-rata Skor</th>
+                                    <th>Jumlah Soal Benar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($studentAnalytics as $analytics)
+                                    <tr>
+                                        <td>{{ $analytics['user']->name }}</td>
+                                        <td>{{ $analytics['user']->email }}</td>
+                                        <td>{{ $analytics['totalExams'] }}</td>
+                                        <td>{{ $analytics['totalScore'] }}</td>
+                                        <td>{{ $analytics['averageScore'] }}</td>
+                                        <td>{{ $analytics['totalCorrect'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        const examCtx = document.getElementById('examChart').getContext('2d');
+        const examChart = new Chart(examCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($examStats->pluck('title')),
+                datasets: [{
+                    label: 'Jumlah Soal',
+                    data: @json($examStats->pluck('questions_count')),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        bottom: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            padding: 10
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        const userCtx = document.getElementById('userChart').getContext('2d');
+        const userChart = new Chart(userCtx, {
+            type: 'pie',
+            data: {
+                labels: @json($userStats->pluck('role')),
+                datasets: [{
+                    data: @json($userStats->pluck('count')),
+                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                    borderWidth: 1
+                }]
+            }
+        });
+
+        const studentScoreCtx = document.getElementById('studentScoreChart').getContext('2d');
+        const studentScoreChart = new Chart(studentScoreCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($studentNames),
+                datasets: [{
+                    label: 'Rata-rata Skor',
+                    data: @json($studentAverageScores),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        bottom: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            padding: 10
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        const studentCorrectCtx = document.getElementById('studentCorrectChart').getContext('2d');
+        const studentCorrectChart = new Chart(studentCorrectCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($studentNames),
+                datasets: [{
+                    label: 'Jumlah Soal Benar',
+                    data: @json($studentTotalCorrect),
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        bottom: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            padding: 10
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

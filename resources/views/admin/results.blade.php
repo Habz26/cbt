@@ -63,7 +63,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/admin">Dashboard</a>
+                        <a class="nav-link" href="/admin">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/soal">Kelola Soal</a>
@@ -74,14 +74,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/users">Kelola User</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/analytics">Analytics</a>
-                    </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/results">Monitoring Hasil</a>
+                        <a class="nav-link active" href="/admin/results">Monitoring Hasil</a>
                     </li>
                 </ul>
                 <form method="POST" action="/logout" class="d-flex">
@@ -101,9 +99,9 @@
         @else
             <div class="card">
                 <div class="card-body">
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
                         <table class="table table-striped">
-                            <thead>
+                            <thead style="position: sticky; top: 0; background-color: white; z-index: 10; text-align: center;">
                                 <tr>
                                     <th>Nama Siswa</th>
                                     <th>Ujian</th>
@@ -115,12 +113,12 @@
                             <tbody>
                                 @foreach($results as $result)
                                     <tr>
-                                        <td>{{ $result->user->name ?? 'N/A' }}</td>
-                                        <td>{{ $result->exam->title }}</td>
-                                        <td><strong>{{ $result->score }}</strong></td>
-                                        <td>{{ $result->created_at->format('d-m-Y H:i') }}</td>
+                                        <td style="text-align: center;">{{ $result->user->name ?? 'N/A' }}</td>
+                                        <td style="text-align: center;">{{ $result->exam->title }}</td>
+                                        <td style="text-align: center;"><strong>{{ $result->score }}</strong></td>
+                                        <td style="text-align: center;">{{ $result->created_at->format('d-m-Y H:i') }}</td>
                                         <td>
-                                            <table class="table table-sm table-borderless" style="font-size: 0.8em;">
+                                            <table class="table table-sm table-bordered" style="font-size: 0.8em;">
                                                 <thead>
                                                     <tr>
                                                         <th>Soal</th>
@@ -131,7 +129,24 @@
                                                 <tbody>
                                                     @foreach($result->answers as $index => $answer)
                                                         <tr>
-                                                            <td>{{ $index + 1 }}. {{ preg_replace('/^\d+\./', ($index + 1) . '.', $answer->question->question) }}</td>
+                                                            <td>
+                                                                {{ $index + 1 }}. {!! nl2br(e($answer->question->question)) !!}
+                                                                @if($answer->question->image)
+                                                                    <br><img src="{{ asset('storage/' . $answer->question->image) }}" alt="Question Image" class="img-fluid" style="max-width: 200px;">
+                                                                @endif
+                                                                @if($answer->question->type == 'multiple_choice')
+                                                                    <br><strong>Opsi:</strong>
+                                                                    <ul style="list-style-type: none; padding-left: 0;">
+                                                                        <li>A. {{ $answer->question->option_a }} @if($answer->question->option_a_image)<img src="{{ asset('storage/' . $answer->question->option_a_image) }}" alt="Option A" class="img-fluid" style="max-width: 100px;">@endif</li>
+                                                                        <li>B. {{ $answer->question->option_b }} @if($answer->question->option_b_image)<img src="{{ asset('storage/' . $answer->question->option_b_image) }}" alt="Option B" class="img-fluid" style="max-width: 100px;">@endif</li>
+                                                                        <li>C. {{ $answer->question->option_c }} @if($answer->question->option_c_image)<img src="{{ asset('storage/' . $answer->question->option_c_image) }}" alt="Option C" class="img-fluid" style="max-width: 100px;">@endif</li>
+                                                                        <li>D. {{ $answer->question->option_d }} @if($answer->question->option_d_image)<img src="{{ asset('storage/' . $answer->question->option_d_image) }}" alt="Option D" class="img-fluid" style="max-width: 100px;">@endif</li>
+                                                                        @if($answer->question->option_e)
+                                                                            <li>E. {{ $answer->question->option_e }} @if($answer->question->option_e_image)<img src="{{ asset('storage/' . $answer->question->option_e_image) }}" alt="Option E" class="img-fluid" style="max-width: 100px;">@endif</li>
+                                                                        @endif
+                                                                    </ul>
+                                                                @endif
+                                                            </td>
                                                             <td>{{ $answer->answer }}</td>
                                                             <td>{{ $answer->question->type == 'essay' ? '-' : $answer->question->correct_answer }}</td>
                                                         </tr>

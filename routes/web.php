@@ -33,10 +33,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/results', [AdminController::class, 'results']);
             Route::get('/users', [AdminController::class, 'users']);
             Route::post('/users', [AdminController::class, 'storeUser']);
+            Route::post('/users/import', [AdminController::class, 'importUsers']);
             Route::get('/users/{id}/edit', [AdminController::class, 'editUser']);
             Route::put('/users/{id}', [AdminController::class, 'updateUser']);
             Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
-            Route::get('/analytics', [AdminController::class, 'analytics']);
+
             Route::get('/schedule', [AdminController::class, 'schedule']);
         });
 

@@ -69,19 +69,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/admin">Dashboard</a>
+                        <a class="nav-link" href="/admin">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/soal">Kelola Soal</a>
+                        <a class="nav-link active" href="/admin/soal">Kelola Soal</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/exam">Kelola Ujian</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/users">Kelola User</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/analytics">Analytics</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
@@ -180,6 +177,15 @@
                 <form method="POST" action="/admin/soal" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
+                        <label>Ujian:</label>
+                        <select name="import_exam_id" class="form-control" required>
+                            <option value="">Pilih Ujian</option>
+                            @foreach($exams as $e)
+                                <option value="{{ $e->id }}">{{ $e->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>File Excel:</label>
                         <input type="file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
                     </div>
@@ -196,7 +202,7 @@
                 <div class="col-md-6 question-card" data-exam-id="{{ $q->exam_id }}">
                     <div class="card mb-3">
                         <div class="card-body">
-                            <h5>{{ $loop->iteration }}. {{ $q->question }}</h5>
+                            <h5>{{ $q->number }}. {{ $q->question }}</h5>
                             @if($q->image)
                                 <img src="{{ asset('storage/' . $q->image) }}" alt="Gambar Soal" class="img-thumbnail mb-2" style="max-width: 200px;">
                             @endif
@@ -248,6 +254,20 @@
                     card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
+                }
+            });
+
+            // Renumber visible questions
+            let counter = 1;
+            questionCards.forEach(card => {
+                if (card.style.display !== 'none') {
+                    const h5 = card.querySelector('h5');
+                    const originalText = h5.textContent;
+                    const dotIndex = originalText.indexOf('.');
+                    if (dotIndex !== -1) {
+                        h5.textContent = counter + originalText.substring(dotIndex);
+                    }
+                    counter++;
                 }
             });
         });

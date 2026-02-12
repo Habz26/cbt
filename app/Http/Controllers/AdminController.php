@@ -9,23 +9,68 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\QuestionImport;
+use App\Imports\UserImport;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        return view('admin.dashboard', [
-            'exams' => Exam::count(),
-            'questions' => Question::count(),
-            'users' => \App\Models\User::count(),
-            'results' => \App\Models\Result::count(),
-        ]);
+        $examCount = Exam::count();
+        $questionCount = Question::count();
+        $userCount = User::count();
+        $resultCount = \App\Models\Result::count();
+
+        $examStats = Exam::withCount('questions')->get();
+        $userStats = User::selectRaw('role, count(*) as count')->groupBy('role')->get();
+
+        // Student Analytics
+        $studentResults = \App\Models\Result::with(['user', 'exam.questions'])
+            ->get()
+            ->groupBy('user_id');
+
+        $studentAnalytics = [];
+
+        foreach ($studentResults as $userId => $results) {
+            $user = $results->first()->user;
+            $totalExams = $results->count();
+            $totalScore = $results->sum('score'); // total jawaban benar
+
+            // Calculate total unique questions answered across all exams
+            $totalUniqueQuestionsAnswered = \App\Models\Answer::where('user_id', $userId)->distinct('question_id')->count('question_id');
+
+            // Calculate average score as (total correct / total unique questions answered) * 100
+            $averageScore = $totalUniqueQuestionsAnswered > 0 ? round(($totalScore / $totalUniqueQuestionsAnswered) * 100, 1) : 0;
+
+            $studentAnalytics[] = [
+                'user' => $user,
+                'totalExams' => $totalExams,
+                'totalScore' => $totalScore,
+                'averageScore' => $averageScore,
+                'totalCorrect' => $totalScore, // since totalScore is already total correct
+            ];
+        }
+
+        // Prepare data for charts
+        $studentNames = collect($studentAnalytics)->pluck('user.name');
+        $studentAverageScores = collect($studentAnalytics)->pluck('averageScore');
+        $studentTotalCorrect = collect($studentAnalytics)->pluck('totalCorrect');
+
+        return view('admin.dashboard', compact('examCount', 'questionCount', 'userCount', 'resultCount', 'examStats', 'userStats', 'studentAnalytics', 'studentNames', 'studentAverageScores', 'studentTotalCorrect'));
     }
 
     public function soal()
     {
+        $questions = Question::with('exam')->get();
+        $numberedQuestions = [];
+        foreach ($questions->groupBy('exam_id') as $examId => $qs) {
+            $number = 1;
+            foreach ($qs as $q) {
+                $q->number = $number++;
+                $numberedQuestions[] = $q;
+            }
+        }
         return view('admin.soal', [
-            'questions' => Question::with('exam')->get(),
+            'questions' => $numberedQuestions,
             'exams' => Exam::all(),
         ]);
     }
@@ -34,7 +79,8 @@ class AdminController extends Controller
     {
         if ($r->hasFile('excel_file')) {
             // Import from Excel
-            Excel::import(new QuestionImport, $r->file('excel_file'));
+            $examId = $r->import_exam_id;
+            Excel::import(new QuestionImport($examId), $r->file('excel_file'));
             return back()->with('success', 'Soal berhasil diimpor dari Excel');
         } else {
             // Manual input
@@ -154,19 +200,19 @@ class AdminController extends Controller
 
     public function results()
     {
-        $results = \App\Models\Result::with(['user', 'exam'])->get();
+        $results = \App\Models\Result::with(['user', 'exam'])->whereNotNull('score')->get();
 
         // Add answers to each result
         foreach ($results as $result) {
             $examQuestions = $result->exam->questions->sortBy('id')->pluck('id')->toArray();
             $answers = \App\Models\Answer::where('user_id', $result->user_id)
-                ->whereHas('question', function($q) use ($result) {
+                ->whereHas('question', function ($q) use ($result) {
                     $q->where('exam_id', $result->exam_id);
                 })
                 ->with('question')
                 ->get()
                 ->unique('question_id')
-                ->sortBy(function($answer) use ($examQuestions) {
+                ->sortBy(function ($answer) use ($examQuestions) {
                     return array_search($answer->question_id, $examQuestions);
                 })
                 ->values();
@@ -199,6 +245,7 @@ class AdminController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'plain_password' => $request->password,
             'role' => $request->role,
         ]);
 
@@ -228,7 +275,10 @@ class AdminController extends Controller
         ]);
 
         if ($request->filled('password')) {
-            $user->update(['password' => Hash::make($request->password)]);
+            $user->update([
+                'password' => Hash::make($request->password),
+                'plain_password' => $request->password,
+            ]);
         }
 
         return redirect('/admin/users')->with('success', 'User berhasil diupdate');
@@ -240,48 +290,18 @@ class AdminController extends Controller
         return redirect('/admin/users')->with('success', 'User berhasil dihapus');
     }
 
-    // Analytics
-    public function analytics()
+    public function importUsers(Request $request)
     {
-        $examCount = Exam::count();
-        $questionCount = Question::count();
-        $userCount = User::count();
-        $resultCount = \App\Models\Result::count();
+        $request->validate([
+            'excel_file' => 'required|mimes:xlsx,xls',
+        ]);
 
-        $examStats = Exam::withCount('questions')->get();
-        $userStats = User::selectRaw('role, count(*) as count')->groupBy('role')->get();
+        Excel::import(new UserImport(), $request->file('excel_file'));
 
-        // Student Analytics
-        $studentResults = \App\Models\Result::with(['user', 'exam'])->get()->groupBy('user_id');
-        $studentAnalytics = [];
-        foreach ($studentResults as $userId => $results) {
-            $user = $results->first()->user;
-            $totalExams = $results->count();
-            $totalScore = $results->sum('score');
-            $averageScore = $totalExams > 0 ? round($totalScore / $totalExams, 2) : 0;
-
-            // Calculate total correct answers
-            $totalCorrect = 0;
-            foreach ($results as $result) {
-                $totalCorrect += $result->score ?? 0;
-            }
-
-            $studentAnalytics[] = [
-                'user' => $user,
-                'totalExams' => $totalExams,
-                'totalScore' => $totalScore,
-                'averageScore' => $averageScore,
-                'totalCorrect' => $totalCorrect,
-            ];
-        }
-
-        // Prepare data for charts
-        $studentNames = collect($studentAnalytics)->pluck('user.name');
-        $studentAverageScores = collect($studentAnalytics)->pluck('averageScore');
-        $studentTotalCorrect = collect($studentAnalytics)->pluck('totalCorrect');
-
-        return view('admin.analytics', compact('examCount', 'questionCount', 'userCount', 'resultCount', 'examStats', 'userStats', 'studentAnalytics', 'studentNames', 'studentAverageScores', 'studentTotalCorrect'));
+        return redirect('/admin/users')->with('success', 'Users berhasil diimpor dari Excel');
     }
+
+
 
     // Exam Schedule
     public function schedule()
