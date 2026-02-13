@@ -23,22 +23,79 @@ class AdminController extends Controller
         $examStats = Exam::withCount('questions')->get();
         $userStats = User::selectRaw('role, count(*) as count')->groupBy('role')->get();
 
-        // Student Analytics
+        // Get unique exams that have results (max 2)
+        $examsWithResults = Exam::whereHas('results', function ($q) {
+            $q->whereNotNull('score');
+        })->take(2)->get();
+
+        // Exam-specific analytics (up to 2 exams)
+        $examAnalytics = [];
+        
+        // For charts - structured data organized by exam
+        $examsForChart = [];
+
+        foreach ($examsWithResults as $index => $exam) {
+            // Get results for this specific exam
+            $examResults = \App\Models\Result::with(['user', 'exam.questions'])
+                ->where('exam_id', $exam->id)
+                ->whereNotNull('score')
+                ->get()
+                ->groupBy('user_id');
+
+            $analytics = [];
+            $studentNames = [];
+            $averageScores = [];
+            $totalCorrect = [];
+
+            foreach ($examResults as $userId => $results) {
+                $user = $results->first()->user;
+                $totalScore = $results->sum('score');
+                
+                // Get total questions for this exam
+                $totalQuestions = $exam->questions->count();
+                
+                // Calculate average score for this exam
+                $averageScore = $totalQuestions > 0 ? round(($totalScore / $totalQuestions) * 100, 1) : 0;
+
+                $analytics[] = [
+                    'user' => $user,
+                    'examTitle' => $exam->title,
+                    'totalScore' => $totalScore,
+                    'averageScore' => $averageScore,
+                    'totalCorrect' => $totalScore,
+                ];
+                
+                $studentNames[] = $user->name;
+                $averageScores[] = $averageScore;
+                $totalCorrect[] = $totalScore;
+            }
+
+            $examAnalytics[$index] = [
+                'exam' => $exam,
+                'analytics' => $analytics
+            ];
+
+            // Add to chart data structure
+            $examsForChart[] = [
+                'id' => $exam->id,
+                'title' => $exam->title,
+                'studentNames' => $studentNames,
+                'averageScores' => $averageScores,
+                'totalCorrect' => $totalCorrect
+            ];
+        }
+
+        // Legacy support - keep original variables for backward compatibility
+        $studentAnalytics = [];
         $studentResults = \App\Models\Result::with(['user', 'exam.questions'])
             ->get()
             ->groupBy('user_id');
 
-        $studentAnalytics = [];
-
         foreach ($studentResults as $userId => $results) {
             $user = $results->first()->user;
             $totalExams = $results->count();
-            $totalScore = $results->sum('score'); // total jawaban benar
-
-            // Calculate total unique questions answered across all exams
+            $totalScore = $results->sum('score');
             $totalUniqueQuestionsAnswered = \App\Models\Answer::where('user_id', $userId)->distinct('question_id')->count('question_id');
-
-            // Calculate average score as (total correct / total unique questions answered) * 100
             $averageScore = $totalUniqueQuestionsAnswered > 0 ? round(($totalScore / $totalUniqueQuestionsAnswered) * 100, 1) : 0;
 
             $studentAnalytics[] = [
@@ -46,16 +103,28 @@ class AdminController extends Controller
                 'totalExams' => $totalExams,
                 'totalScore' => $totalScore,
                 'averageScore' => $averageScore,
-                'totalCorrect' => $totalScore, // since totalScore is already total correct
+                'totalCorrect' => $totalScore,
             ];
         }
 
-        // Prepare data for charts
         $studentNames = collect($studentAnalytics)->pluck('user.name');
         $studentAverageScores = collect($studentAnalytics)->pluck('averageScore');
         $studentTotalCorrect = collect($studentAnalytics)->pluck('totalCorrect');
 
-        return view('admin.dashboard', compact('examCount', 'questionCount', 'userCount', 'resultCount', 'examStats', 'userStats', 'studentAnalytics', 'studentNames', 'studentAverageScores', 'studentTotalCorrect'));
+        return view('admin.dashboard', compact(
+            'examCount', 
+            'questionCount', 
+            'userCount', 
+            'resultCount', 
+            'examStats', 
+            'userStats', 
+            'studentAnalytics', 
+            'studentNames', 
+            'studentAverageScores', 
+            'studentTotalCorrect',
+            'examAnalytics',
+            'examsForChart'
+        ));
     }
 
     public function soal()

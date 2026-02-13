@@ -60,8 +60,8 @@
                             <form method="POST" action="/login">
                                 @csrf
                                 <div class="mb-4">
-                                    <label for="username" class="form-label">Username</label>
-                                    <input type="text" name="username" class="form-control" id="username" placeholder="Username" required>
+                                    <label for="email" class="form-label">E-Mail</label>
+                                    <input type="email" name="email" class="form-control" id="email" placeholder="Masukkan E-Mail anda" required>
                                 </div>
                                 <div class="mb-4">
                                     <label for="password" class="form-label">Password</label>

@@ -1,6 +1,6 @@
-# TODO: Filter Student Analytics per Exam
+# TODO - Fix start.blade.php
 
-## Steps to Complete
-- [x] Update AdminController.php index() method to calculate analytics per exam per student
-- [x] Modify dashboard.blade.php to display data per exam in table and charts
-- [x] Test the dashboard to ensure correct display and calculations
+## Plan:
+- [x] Reduce font sizes in CSS
+- [x] Fix mixed Latin/Arabic text handling (use unicode-bidi: isolate for mixed content)
+- [x] Remove duplicate saveProgress function in JavaScript

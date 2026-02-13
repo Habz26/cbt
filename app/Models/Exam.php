@@ -8,4 +8,5 @@ class Exam extends Model
 {
     protected $fillable = ['title','start_time','end_time','duration'];
     public function questions(){ return $this->hasMany(Question::class); }
+    public function results(){ return $this->hasMany(Result::class); }
 }

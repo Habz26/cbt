@@ -11,7 +11,7 @@ class AuthController extends Controller
 {
     public function login(Request $r)
     {
-        $user = User::where('username',$r->username)->first();
+        $user = User::where('email',$r->email)->first();
 
         if(!$user || !Hash::check($r->password,$user->password)){
             return back()->with('error','Login gagal');

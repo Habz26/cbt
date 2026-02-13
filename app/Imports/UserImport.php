@@ -10,22 +10,22 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class UserImport implements ToModel, WithHeadingRow
 {
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * @param array $row
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     public function model(array $row)
     {
         // Handle possible header variations
-        $name = $row['name'] ?? $row['Name'] ?? null;
-        $username = $row['username'] ?? $row['Username'] ?? null;
-        $email = $row['email'] ?? $row['Email'] ?? null;
-        $password = $row['password'] ?? $row['Password'] ?? $row['massword'] ?? $row['Massword'] ?? null;
-        $role = $row['role'] ?? $row['Role'] ?? 'student';
+        $name = $row['name'] ?? ($row['Name'] ?? null);
+        $username = $row['username'] ?? ($row['Username'] ?? null);
+        $email = $row['email'] ?? ($row['Email'] ?? null);
+        $password = $row['password'] ?? ($row['Password'] ?? ($row['massword'] ?? ($row['Massword'] ?? null)));
+        $role = $row['role'] ?? ($row['Role'] ?? 'student');
 
         // Validate required fields
-        if (!$name || !$username || !$email || !$password) {
-            throw new \Exception("Missing required fields: name, username, email, password. Found: name={$name}, username={$username}, email={$email}, password={$password}");
+        if (!$name || !$email || !$password) {
+            throw new \Exception("Missing required fields: name, email, password. Found: name={$name}, email={$email}, password={$password}");
         }
 
         return new User([

@@ -115,7 +115,16 @@
             <div class="col-md-6 d-flex flex-column gap-3">
                 <div class="card flex-fill" style="margin: 0;">
                     <div class="card-body">
-                        <h5 class="card-title">Rata-rata Skor Siswa</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title">Rata-rata Skor Siswa</h5>
+                            @if(count($examsForChart) > 0)
+                            <select id="examSelector" class="form-select form-select-sm" style="width: auto;">
+                                @foreach($examsForChart as $exam)
+                                    <option value="{{ $loop->index }}">{{ $exam['title'] }}</option>
+                                @endforeach
+                            </select>
+                            @endif
+                        </div>
                         <canvas id="studentScoreChart"></canvas>
                     </div>
                 </div>
@@ -149,40 +158,53 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Analytics Siswa</h5>
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Nama Siswa</th>
-                                    <th>Email</th>
-                                    <th>Total Ujian</th>
-                                    <th>Total Skor</th>
-                                    <th>Rata-rata Skor</th>
-                                    <th>Jumlah Soal Benar</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($studentAnalytics as $analytics)
+                @if(count($examAnalytics) > 0)
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title" id="analyticsTableTitle">Analytics Siswa - {{ $examAnalytics[0]['exam']->title }}</h5>
+                            <table class="table table-striped" id="analyticsTable">
+                                <thead>
                                     <tr>
-                                        <td>{{ $analytics['user']->name }}</td>
-                                        <td>{{ $analytics['user']->email }}</td>
-                                        <td>{{ $analytics['totalExams'] }}</td>
-                                        <td>{{ $analytics['totalScore'] }}</td>
-                                        <td>{{ $analytics['averageScore'] }}</td>
-                                        <td>{{ $analytics['totalCorrect'] }}</td>
+                                        <th>Nama Siswa</th>
+                                        <th>Email</th>
+                                        <th>Skor</th>
+                                        <th>Rata-rata Skor</th>
+                                        <th>Jumlah Soal Benar</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody id="analyticsTableBody">
+                                    @foreach($examAnalytics[0]['analytics'] as $analytics)
+                                        <tr>
+                                            <td>{{ $analytics['user']->name }}</td>
+                                            <td>{{ $analytics['user']->email }}</td>
+                                            <td>{{ $analytics['totalScore'] }}</td>
+                                            <td>{{ $analytics['averageScore'] }}</td>
+                                            <td>{{ $analytics['totalCorrect'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                @else
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Analytics Siswa</h5>
+                            <p class="text-muted">Belum ada data hasil ujian.</p>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 
     <script>
+        // Exam data for charts
+        const examsForChart = @json($examsForChart);
+        
+        // Exam analytics data for table
+        const examAnalytics = @json($examAnalytics);
+        
         const examCtx = document.getElementById('examChart').getContext('2d');
         const examChart = new Chart(examCtx, {
             type: 'bar',
@@ -243,14 +265,31 @@
             }
         });
 
+        // Function to update charts based on selected exam
+        function updateCharts(examIndex) {
+            const examData = examsForChart[examIndex];
+            if (!examData) return;
+            
+            // Update student score chart
+            studentScoreChart.data.labels = examData.studentNames;
+            studentScoreChart.data.datasets[0].data = examData.averageScores;
+            studentScoreChart.update();
+            
+            // Update student correct chart
+            studentCorrectChart.data.labels = examData.studentNames;
+            studentCorrectChart.data.datasets[0].data = examData.totalCorrect;
+            studentCorrectChart.update();
+        }
+
+        // Initialize student score chart
         const studentScoreCtx = document.getElementById('studentScoreChart').getContext('2d');
         const studentScoreChart = new Chart(studentScoreCtx, {
             type: 'bar',
             data: {
-                labels: @json($studentNames),
+                labels: [],
                 datasets: [{
                     label: 'Rata-rata Skor',
-                    data: @json($studentAverageScores),
+                    data: [],
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
@@ -289,14 +328,15 @@
             }
         });
 
+        // Initialize student correct chart
         const studentCorrectCtx = document.getElementById('studentCorrectChart').getContext('2d');
         const studentCorrectChart = new Chart(studentCorrectCtx, {
             type: 'bar',
             data: {
-                labels: @json($studentNames),
+                labels: [],
                 datasets: [{
                     label: 'Jumlah Soal Benar',
-                    data: @json($studentTotalCorrect),
+                    data: [],
                     backgroundColor: 'rgba(153, 102, 255, 0.2)',
                     borderColor: 'rgba(153, 102, 255, 1)',
                     borderWidth: 1
@@ -334,6 +374,51 @@
                 }
             }
         });
+
+        // Function to update analytics table based on selected exam
+        function updateAnalyticsTable(examIndex) {
+            const analyticsData = examAnalytics[examIndex];
+            if (!analyticsData) return;
+            
+            // Update table title
+            const tableTitle = document.getElementById('analyticsTableTitle');
+            if (tableTitle) {
+                tableTitle.textContent = 'Analytics Siswa - ' + analyticsData.exam.title;
+            }
+            
+            // Update table body
+            const tableBody = document.getElementById('analyticsTableBody');
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                
+                analyticsData.analytics.forEach(function(analytics) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${analytics.user.name}</td>
+                        <td>${analytics.user.email}</td>
+                        <td>${analytics.totalScore}</td>
+                        <td>${analytics.averageScore}</td>
+                        <td>${analytics.totalCorrect}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // Add event listener for exam selector
+        const examSelector = document.getElementById('examSelector');
+        if (examSelector) {
+            examSelector.addEventListener('change', function() {
+                const examIndex = this.value;
+                updateCharts(examIndex);
+                updateAnalyticsTable(examIndex);
+            });
+            // Initialize charts and table with first exam data
+            if (examsForChart.length > 0) {
+                updateCharts(0);
+                updateAnalyticsTable(0);
+            }
+        }
     </script>
 </body>
 </html>
