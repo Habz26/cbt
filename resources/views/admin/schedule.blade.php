@@ -24,6 +24,9 @@
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
         }
+                .navbar-nav .nav-item {
+            margin: 0 5px;
+        }
         .nav-link.active {
             background-color: #007bff;
             border-radius: 5px;
@@ -93,3 +96,5 @@
     </div>
 </body>
 </html>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
