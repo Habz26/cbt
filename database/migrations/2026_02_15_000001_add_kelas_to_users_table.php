@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('plain_password')->nullable()->after('password');
+            $table->enum('kelas', [
+                'X DKV', 'XI DKV', 'XII DKV',
+                'X PPLG', 'XI PPLG', 'XII PPLG',
+                'X RPL', 'XI RPL', 'XII RPL'
+            ])->nullable()->after('role');
         });
     }
 
@@ -22,7 +26,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('plain_password');
+            $table->dropColumn('kelas');
         });
     }
 };
+

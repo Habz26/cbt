@@ -1,0 +1,30 @@
+Note: This is a binary Excel file. The create_file tool expects plain text. I'll provide a CSV template instead that Excel can open directly.
+
+**Excel Import Format for Users:**
+
+**Required Headers (Row 1):**
+| name | username | email | password | role |
+|------|----------|-------|----------|------|
+
+**Sample Data (Row 2+):**
+| John Doe | johndoe | john@example.com | password123 | student |
+| Jane Smith | janesmith | jane@example.com | pass456 | admin |
+| Student 1 | student1 | s1@school.com | 123456 | student |
+
+**Instructions:**
+1. Create new Excel file
+2. Row 1: Exactly these headers (case-sensitive)
+3. Fill data from Row 2
+4. `role`: "student" or "admin" only
+5. Save as `.xlsx`
+6. Upload via admin/users import form
+
+**Quick CSV Template (save as .csv, open in Excel):**
+```
+name,username,email,password,role
+John Doe,johndoe,john@example.com,password123,student
+Jane Smith,janesmith,jane@example.com,pass456,admin
+```
+
+Copy-paste ready! 📋
+    

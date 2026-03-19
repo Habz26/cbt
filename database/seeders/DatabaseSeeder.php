@@ -15,13 +15,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        User::factory(5)->create();
 
-        User::factory()->create([
-            'name' => 'Furel',
-            'username' => 'furel',
-            'email' => 'furel@example.com',
-            'password' => bcrypt('furel'),
+        User::create([
+            'name' => 'Sihab Admin',
+            'username' => 'admin',
+            'email' => 'admin@cbt',
+            'password' => bcrypt('admin123'),
+            'role' => 'admin',
+            'kelas' => 'XII RPL',
         ]);
+
+
+        $this->call(QuestionSeeder50::class);
     }
 }

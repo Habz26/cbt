@@ -4,170 +4,340 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoring Hasil Ujian - Admin</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
     <style>
-        body { background-color: #f8f9fa; }
-        .card { margin: 20px 0; }
-        .fixed-button {
+        body {
+            background: linear-gradient(135deg, #eef2f7, #f8fafc);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR (SAMA DASHBOARD) */
+        .sidebar {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            top: 20px;
+            left: 20px;
+            width: 240px;
+            height: calc(100% - 40px);
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.07);
+            padding: 20px;
             z-index: 1000;
-            background-color: #6c757d;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+        }
+
+        .sidebar-title {
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #343a40;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            color: #495057;
             text-decoration: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: 0.25s;
         }
-        .fixed-button:hover {
-            background-color: #5a6268;
-            color: white;
-            text-decoration: none;
+
+        .sidebar a:hover {
+            background: rgba(13,110,253,0.1);
+            color: #0d6efd;
         }
-        .navbar {
-            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-bottom: 2px solid #007bff;
+
+        .sidebar a.active {
+            background: #0d6efd;
+            color: #fff;
         }
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.25rem;
+
+        .logout {
+            position: absolute;
+            bottom: 20px;
+            width: calc(100% - 40px);
         }
-        .nav-link {
-            transition: all 0.3s ease;
-            position: relative;
+
+        /* MAIN */
+        .main {
+            margin-left: 280px;
+            padding: 30px;
         }
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
+
+        /* TOPBAR */
+        .topbar {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(12px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
         }
-                .navbar-nav .nav-item {
-            margin: 0 5px;
+
+        /* CARD */
+        .card {
+            border: none;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+            transition: 0.3s;
         }
-        .nav-link.active {
-            background-color: #007bff;
-            border-radius: 5px;
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
         }
-        .btn-outline-light:hover {
-            background-color: #dc3545;
-            border-color: #dc3545;
+
+        /* FORM & BUTTON */
+        .btn, .form-control, .form-select {
+            border-radius: 10px;
+        }
+
+        /* TABLE */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            font-size: 10px;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+        }
+
+        .table thead th {
+            border: none;
+            font-size: 9px;
+            color: #6c757d;
+        }
+
+        .table tbody tr {
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .table td {
+            border-top: none;
+            vertical-align: middle;
+        }
+
+        .table td:first-child,
+        .table th:first-child {
+            position: sticky;
+            left: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 120px;
+            text-align: left;
+        }
+
+        .table td:last-child,
+        .table th:last-child {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 60px;
+        }
+
+        .btn-print {
+            border-radius: 10px;
+        }
+
+        @media print {
+            .sidebar,
+            .topbar,
+            .btn-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
         }
     </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/admin">CBT SPMB - Admin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/soal">Kelola Soal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/exam">Kelola Ujian</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/users">Kelola User</a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/admin/results">Monitoring Hasil</a>
-                    </li>
-                </ul>
-                <form method="POST" action="/logout" class="d-flex">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-light">Logout</button>
-                </form>
-            </div>
-        </div>
-    </nav>
-    <div class="container">
-        <h2 class="mt-4">Monitoring Hasil Ujian</h2>
 
-        @if($results->isEmpty())
-            <div class="alert alert-info">
-                <p>Belum ada hasil ujian yang tersedia.</p>
-            </div>
-        @else
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
-                        <table class="table table-striped">
-                            <thead style="position: sticky; top: 0; background-color: white; z-index: 10; text-align: center;">
-                                <tr>
-                                    <th>Nama Siswa</th>
-                                    <th>Ujian</th>
-                                    <th>Skor</th>
-                                    <th>Tanggal Submit</th>
-                                    <th>Jawaban</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($results as $result)
-                                    <tr>
-                                        <td style="text-align: center;">{{ $result->user->name ?? 'N/A' }}</td>
-                                        <td style="text-align: center;">{{ $result->exam->title }}</td>
-                                        <td style="text-align: center;"><strong>{{ $result->score }}</strong></td>
-                                        <td style="text-align: center;">{{ $result->created_at->format('d-m-Y H:i') }}</td>
-                                        <td>
-                                            <table class="table table-sm table-bordered" style="font-size: 0.8em;">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Soal</th>
-                                                        <th>Jawaban Siswa</th>
-                                                        <th>Jawaban Benar</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($result->answers as $index => $answer)
-                                                        <tr>
-                                                            <td>
-                                                                {{ $index + 1 }}. {!! nl2br(e($answer->question->question)) !!}
-                                                                @if($answer->question->image)
-                                                                    <br><img src="{{ asset('storage/' . $answer->question->image) }}" alt="Question Image" class="img-fluid" style="max-width: 200px;">
-                                                                @endif
-                                                                @if($answer->question->type == 'multiple_choice')
-                                                                    <br><strong>Opsi:</strong>
-                                                                    <ul style="list-style-type: none; padding-left: 0;">
-                                                                        <li>A. {{ $answer->question->option_a }} @if($answer->question->option_a_image)<img src="{{ asset('storage/' . $answer->question->option_a_image) }}" alt="Option A" class="img-fluid" style="max-width: 100px;">@endif</li>
-                                                                        <li>B. {{ $answer->question->option_b }} @if($answer->question->option_b_image)<img src="{{ asset('storage/' . $answer->question->option_b_image) }}" alt="Option B" class="img-fluid" style="max-width: 100px;">@endif</li>
-                                                                        <li>C. {{ $answer->question->option_c }} @if($answer->question->option_c_image)<img src="{{ asset('storage/' . $answer->question->option_c_image) }}" alt="Option C" class="img-fluid" style="max-width: 100px;">@endif</li>
-                                                                        <li>D. {{ $answer->question->option_d }} @if($answer->question->option_d_image)<img src="{{ asset('storage/' . $answer->question->option_d_image) }}" alt="Option D" class="img-fluid" style="max-width: 100px;">@endif</li>
-                                                                        @if($answer->question->option_e)
-                                                                            <li>E. {{ $answer->question->option_e }} @if($answer->question->option_e_image)<img src="{{ asset('storage/' . $answer->question->option_e_image) }}" alt="Option E" class="img-fluid" style="max-width: 100px;">@endif</li>
-                                                                        @endif
-                                                                    </ul>
-                                                                @endif
-                                                            </td>
-                                                            <td>{{ $answer->answer }}</td>
-                                                            <td>{{ $answer->question->type == 'essay' ? '-' : $answer->question->correct_answer }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-title">CBT Admin</div>
+
+    <a href="/admin"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/soal"><i class="fas fa-file-alt"></i> Kelola Soal</a>
+    <a href="/admin/exam"><i class="fas fa-clipboard-list"></i> Kelola Ujian</a>
+    <a href="/admin/users"><i class="fas fa-users"></i> Kelola User</a>
+    <a href="/admin/schedule"><i class="fas fa-calendar"></i> Jadwal Ujian</a>
+    <a href="/admin/results" class="active"><i class="fas fa-chart-bar"></i> Monitoring Hasil</a>
+
+    <form method="POST" action="/logout" class="logout">
+        @csrf
+        <button class="btn btn-danger w-100">Logout</button>
+    </form>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">Monitoring Hasil</h5>
+            <small class="text-muted">Data hasil ujian siswa</small>
+        </div>
+        <button class="btn btn-primary btn-print" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
+        </button>
+    </div>
+
+    <!-- FILTER -->
+    <div class="card p-3 mb-4">
+        <form method="GET" action="/admin/results">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <select name="exam_id" class="form-select">
+                        <option value="">Semua Ujian</option>
+                        @foreach($examsList as $exam)
+                            <option value="{{ $exam->id }}" {{ $exam_id == $exam->id ? 'selected' : '' }}>
+                                {{ Str::limit($exam->title, 30) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <select name="kelas" class="form-select">
+                        <option value="">Semua Kelas</option>
+                        <option value="X DKV" {{ $kelas == 'X DKV' ? 'selected' : '' }}>X DKV</option>
+                        <option value="XI DKV" {{ $kelas == 'XI DKV' ? 'selected' : '' }}>XI DKV</option>
+                        <option value="XII DKV" {{ $kelas == 'XII DKV' ? 'selected' : '' }}>XII DKV</option>
+                        <option value="X PPLG" {{ $kelas == 'X PPLG' ? 'selected' : '' }}>X PPLG</option>
+                        <option value="XI PPLG" {{ $kelas == 'XI PPLG' ? 'selected' : '' }}>XI PPLG</option>
+                        <option value="XII RPL" {{ $kelas == 'XII RPL' ? 'selected' : '' }}>XII RPL</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-primary w-100">Filter</button>
+                    <a href="/admin/results" class="btn btn-light w-100">Reset</a>
                 </div>
             </div>
-        @endif
-
-
+        </form>
     </div>
+
+    @if (empty($examResults))
+        <div class="card p-3">
+            <p class="text-muted mb-0">Belum ada hasil ujian.</p>
+        </div>
+    @else
+        @foreach ($examResults as $examResult)
+            <div class="card p-4 mb-4">
+                <h5>{{ $examResult['exam']->title }}</h5>
+                <small class="text-muted">PG: {{ count($examResult['pgQuestions']) }} | Essay: {{ count($examResult['essayQuestions']) }}</small>
+
+                <!-- PG -->
+                <div class="mt-4">
+                    <h6>PG Results</h6>
+
+                    @php
+                        $pgQuestions = $examResult['pgQuestions']->sortBy('id')->values();
+                        $pgPerPage = 60;
+                        $pgPages = ceil(count($pgQuestions) / $pgPerPage);
+                    @endphp
+
+                    @for ($pgPage = 0; $pgPage < $pgPages; $pgPage++)
+                        @php
+                            $pgStart = $pgPage * $pgPerPage;
+                            $pgQuestionsPage = array_slice($pgQuestions->toArray(), $pgStart, $pgPerPage);
+                        @endphp
+
+                        <div class="table-container mb-3">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Siswa</th>
+                                        @foreach ($pgQuestionsPage as $q)
+                                            <th>{{ $loop->index + 1 }}</th>
+                                        @endforeach
+                                        <th>Skor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($examResult['pgStudents'] as $student)
+                                        <tr>
+                                            <td>{{ $student['user']->name }}</td>
+                                            @foreach ($pgQuestionsPage as $q)
+                                                <td>{{ $student['pgAnswers'][$q['id']] ?? '-' }}</td>
+                                            @endforeach
+                                            <td><strong>{{ $student['score'] }}</strong></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endfor
+                </div>
+
+                <!-- ESSAY -->
+                <div class="mt-4">
+                    <h6>Essay Jawaban</h6>
+
+                    @foreach (collect($examResult['essayQuestions'])->sortBy('id') as $essayQ)
+                        <div class="card p-3 mb-3">
+                            <strong>Soal {{ $examResult['pgCount'] + $loop->index + 1 }}</strong>
+                            <p class="text-muted">{{ Str::limit($essayQ->question, 100) }}</p>
+
+                            <div class="row">
+                                @foreach ($examResult['essayStudents'] as $student)
+                                    @php
+                                        $answer = $student['essayAnswers']->firstWhere('question_id', $essayQ->id);
+                                    @endphp
+
+                                    @if ($answer)
+                                        <div class="col-md-6 mb-3">
+                                            <strong>{{ $student['user']->name }}</strong> ({{ $student['score'] }})
+
+                                            <div class="p-2 bg-light rounded mt-1" style="font-size: 0.85rem;">
+                                                {{ Str::limit($answer->answer, 150) }}
+                                                <button class="btn btn-sm btn-link p-0"
+                                                    onclick="toggleFull('essay-{{ $essayQ->id }}-{{ $student['user']->id }}')">
+                                                    Lihat
+                                                </button>
+                                            </div>
+
+                                            <div id="essay-{{ $essayQ->id }}-{{ $student['user']->id }}" style="display:none;" class="mt-2">
+                                                <div class="p-3 bg-white rounded shadow-sm">
+                                                    {{ $answer->answer }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endforeach
+    @endif
+
+</div>
+
+<script>
+function toggleFull(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

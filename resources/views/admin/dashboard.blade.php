@@ -3,426 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - CBT SPMB</title>
+    <title>Dashboard Admin - CBT SMKS AL-FALAH NAGREG</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
-        body { background-color: #f8f9fa; }
-        .card { margin: 20px 0; }
-        .navbar {
-            background: linear-gradient(135deg, #343a40 0%, #495057 100%);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-bottom: 2px solid #007bff;
+        body {
+            background: linear-gradient(135deg, #eef2f7, #f8fafc);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.25rem;
+
+        .sidebar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 240px;
+            height: calc(100% - 40px);
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.07);
+            padding: 20px;
+            z-index: 1000;
         }
-        .nav-link {
-            transition: all 0.3s ease;
-            position: relative;
+
+        .sidebar-title {
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #343a40;
         }
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            color: #495057;
+            text-decoration: none;
+            transition: 0.25s;
         }
-        .navbar-nav .nav-item {
-            margin: 0 5px;
+
+        .sidebar a:hover {
+            background: rgba(13,110,253,0.1);
+            color: #0d6efd;
         }
-        .nav-link.active {
-            background-color: #007bff;
-            border-radius: 5px;
+
+        .sidebar a.active {
+            background: #0d6efd;
+            color: #fff;
         }
-        .btn-outline-light:hover {
-            background-color: #dc3545;
-            border-color: #dc3545;
+
+        .logout {
+            position: absolute;
+            bottom: 20px;
+            width: calc(100% - 40px);
+        }
+
+        .main {
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .topbar {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(12px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .display-4 {
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .btn, .form-select {
+            border-radius: 10px;
+        }
+
+        .table thead {
+            background: #f1f3f5;
+        }
+
+        canvas {
+            padding-top: 10px;
+        }
+
+        h2 {
+            font-weight: 600;
+            color: #343a40;
         }
     </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/admin">CBT SPMB - Admin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/admin">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/soal">Kelola Soal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/exam">Kelola Ujian</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/users">Kelola User</a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/schedule">Jadwal Ujian</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/results">Monitoring Hasil</a>
-                    </li>
-                </ul>
-                <form method="POST" action="/logout" class="d-flex">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-light">Logout</button>
-                </form>
-            </div>
-        </div>
-    </nav>
-    <div class="container">
-        <h2 class="mt-4">Dashboard Admin</h2>
 
-        <div class="row">
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Ujian</h5>
-                        <p class="card-text display-4">{{ $examCount }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Soal</h5>
-                        <p class="card-text display-4">{{ $questionCount }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total User</h5>
-                        <p class="card-text display-4">{{ $userCount }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Hasil</h5>
-                        <p class="card-text display-4">{{ $resultCount }}</p>
-                    </div>
-                </div>
+<div class="sidebar">
+    <div class="sidebar-title">CBT Admin</div>
+
+    <a href="/admin" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/soal"><i class="fas fa-file-alt"></i> Kelola Soal</a>
+    <a href="/admin/exam"><i class="fas fa-clipboard-list"></i> Kelola Ujian</a>
+    <a href="/admin/users"><i class="fas fa-users"></i> Kelola User</a>
+    <a href="/admin/schedule"><i class="fas fa-calendar"></i> Jadwal Ujian</a>
+    <a href="/admin/results"><i class="fas fa-chart-bar"></i> Monitoring Hasil</a>
+
+    <form method="POST" action="/logout" class="logout">
+        @csrf
+        <button class="btn btn-danger w-100">Logout</button>
+    </form>
+</div>
+
+<div class="main">
+
+    <div class="topbar d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Dashboard Admin</h5>
+
+        <form method="GET" action="/admin" class="d-flex gap-2">
+            <select name="kelas" class="form-select">
+                <option value="">Semua Kelas</option>
+                <option value="X DKV" {{ $kelas == 'X DKV' ? 'selected' : '' }}>X DKV</option>
+                <option value="XI DKV" {{ $kelas == 'XI DKV' ? 'selected' : '' }}>XI DKV</option>
+                <option value="XII DKV" {{ $kelas == 'XII DKV' ? 'selected' : '' }}>XII DKV</option>
+                <option value="X PPLG" {{ $kelas == 'X PPLG' ? 'selected' : '' }}>X PPLG</option>
+                <option value="XI PPLG" {{ $kelas == 'XI PPLG' ? 'selected' : '' }}>XI PPLG</option>
+                <option value="XII PPLG" {{ $kelas == 'XII PPLG' ? 'selected' : '' }}>XII PPLG</option>
+                <option value="X RPL" {{ $kelas == 'X RPL' ? 'selected' : '' }}>X RPL</option>
+                <option value="XI RPL" {{ $kelas == 'XI RPL' ? 'selected' : '' }}>XI RPL</option>
+                <option value="XII RPL" {{ $kelas == 'XII RPL' ? 'selected' : '' }}>XII RPL</option>
+            </select>
+
+            <button class="btn btn-primary">Filter</button>
+
+            @if($kelas)
+                <a href="/admin" class="btn btn-secondary">Reset</a>
+            @endif
+        </form>
+    </div>
+
+    <h2 class="mb-3">Dashboard Admin</h2>
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6>Total Ujian</h6>
+                <h2>{{ $examCount }}</h2>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-6 d-flex flex-column gap-3">
-                <div class="card flex-fill" style="margin: 0;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title">Rata-rata Skor Siswa</h5>
-                            @if(count($examsForChart) > 0)
-                            <select id="examSelector" class="form-select form-select-sm" style="width: auto;">
-                                @foreach($examsForChart as $exam)
-                                    <option value="{{ $loop->index }}">{{ $exam['title'] }}</option>
-                                @endforeach
-                            </select>
-                            @endif
-                        </div>
-                        <canvas id="studentScoreChart"></canvas>
-                    </div>
-                </div>
-                <div class="card flex-fill" style="margin: 0;">
-                    <div class="card-body">
-                        <h5 class="card-title">Jumlah Soal Benar Siswa</h5>
-                        <canvas id="studentCorrectChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card h-100" style="margin: 0;">
-                    <div class="card-body">
-                        <h5 class="card-title">User per Role</h5>
-                        <canvas id="userChart"></canvas>
-                    </div>
-                </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6>Total Soal</h6>
+                <h2>{{ $questionCount }}</h2>
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Soal per Ujian</h5>
-                        <canvas id="examChart"></canvas>
-                    </div>
-                </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6>Total User</h6>
+                <h2>{{ $userCount }}</h2>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                @if(count($examAnalytics) > 0)
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title" id="analyticsTableTitle">Analytics Siswa - {{ $examAnalytics[0]['exam']->title }}</h5>
-                            <table class="table table-striped" id="analyticsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Nama Siswa</th>
-                                        <th>Email</th>
-                                        <th>Skor</th>
-                                        <th>Rata-rata Skor</th>
-                                        <th>Jumlah Soal Benar</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="analyticsTableBody">
-                                    @foreach($examAnalytics[0]['analytics'] as $analytics)
-                                        <tr>
-                                            <td>{{ $analytics['user']->name }}</td>
-                                            <td>{{ $analytics['user']->email }}</td>
-                                            <td>{{ $analytics['totalScore'] }}</td>
-                                            <td>{{ $analytics['averageScore'] }}</td>
-                                            <td>{{ $analytics['totalCorrect'] }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                @else
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Analytics Siswa</h5>
-                            <p class="text-muted">Belum ada data hasil ujian.</p>
-                        </div>
-                    </div>
-                @endif
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h6>Total Hasil</h6>
+                <h2>{{ $resultCount }}</h2>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Exam data for charts
-        const examsForChart = @json($examsForChart);
-        
-        // Exam analytics data for table
-        const examAnalytics = @json($examAnalytics);
-        
-        const examCtx = document.getElementById('examChart').getContext('2d');
-        const examChart = new Chart(examCtx, {
-            type: 'bar',
-            data: {
-                labels: @json($examStats->pluck('title')),
-                datasets: [{
-                    label: 'Jumlah Soal',
-                    data: @json($examStats->pluck('questions_count')),
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                layout: {
-                    padding: {
-                        left: 10,
-                        right: 10,
-                        top: 10,
-                        bottom: 10
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            padding: 10
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            padding: 10
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
+    <div class="row mt-4">
+        <div class="col-md-12 d-flex flex-column gap-3">
+            <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title">Rata-rata Skor Siswa</h5>
 
-        const userCtx = document.getElementById('userChart').getContext('2d');
-        const userChart = new Chart(userCtx, {
-            type: 'pie',
-            data: {
-                labels: @json($userStats->pluck('role')),
-                datasets: [{
-                    data: @json($userStats->pluck('count')),
-                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
-                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
-                    borderWidth: 1
-                }]
-            }
-        });
+                    @if(count($examsForChart) > 0)
+                    <select id="examSelector" class="form-select form-select-sm" style="width:auto;">
+                        @foreach($examsForChart as $exam)
+                            <option value="{{ $loop->index }}">{{ $exam['title'] }}</option>
+                        @endforeach
+                    </select>
+                    @endif
+                </div>
+                <canvas id="studentScoreChart"></canvas>
+            </div>
 
-        // Function to update charts based on selected exam
-        function updateCharts(examIndex) {
-            const examData = examsForChart[examIndex];
-            if (!examData) return;
-            
-            // Update student score chart
-            studentScoreChart.data.labels = examData.studentNames;
-            studentScoreChart.data.datasets[0].data = examData.averageScores;
-            studentScoreChart.update();
-            
-            // Update student correct chart
-            studentCorrectChart.data.labels = examData.studentNames;
-            studentCorrectChart.data.datasets[0].data = examData.totalCorrect;
-            studentCorrectChart.update();
-        }
+            <div class="card p-3">
+                <h5 class="card-title">Jumlah Soal Benar Siswa</h5>
+                <canvas id="studentCorrectChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-        // Initialize student score chart
-        const studentScoreCtx = document.getElementById('studentScoreChart').getContext('2d');
-        const studentScoreChart = new Chart(studentScoreCtx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Rata-rata Skor',
-                    data: [],
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                layout: {
-                    padding: {
-                        left: 10,
-                        right: 10,
-                        top: 10,
-                        bottom: 10
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            padding: 10
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            padding: 10
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
+    <div class="card mt-4 p-3">
+        <h5 class="card-title">Soal per Ujian</h5>
+        <canvas id="examChart"></canvas>
+    </div>
 
-        // Initialize student correct chart
-        const studentCorrectCtx = document.getElementById('studentCorrectChart').getContext('2d');
-        const studentCorrectChart = new Chart(studentCorrectCtx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Jumlah Soal Benar',
-                    data: [],
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                layout: {
-                    padding: {
-                        left: 10,
-                        right: 10,
-                        top: 10,
-                        bottom: 10
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            padding: 10
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            padding: 10
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        labels: {
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
+    <div class="mt-4">
+        @if(count($examAnalytics) > 0)
+        <div class="card p-3">
+            <h5 class="card-title" id="analyticsTableTitle">
+                Analytics Siswa - {{ $examAnalytics[0]['exam']->title }}
+            </h5>
 
-        // Function to update analytics table based on selected exam
-        function updateAnalyticsTable(examIndex) {
-            const analyticsData = examAnalytics[examIndex];
-            if (!analyticsData) return;
-            
-            // Update table title
-            const tableTitle = document.getElementById('analyticsTableTitle');
-            if (tableTitle) {
-                tableTitle.textContent = 'Analytics Siswa - ' + analyticsData.exam.title;
-            }
-            
-            // Update table body
-            const tableBody = document.getElementById('analyticsTableBody');
-            if (tableBody) {
-                tableBody.innerHTML = '';
-                
-                analyticsData.analytics.forEach(function(analytics) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${analytics.user.name}</td>
-                        <td>${analytics.user.email}</td>
-                        <td>${analytics.totalScore}</td>
-                        <td>${analytics.averageScore}</td>
-                        <td>${analytics.totalCorrect}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-        }
+            <table class="table table-hover" id="analyticsTable">
+                <thead>
+                <tr>
+                    <th>Nama Siswa</th>
+                    <th>Email</th>
+                    <th>Skor</th>
+                    <th>Rata-rata Skor</th>
+                    <th>Jumlah Soal Benar</th>
+                </tr>
+                </thead>
+                <tbody id="analyticsTableBody">
+                @foreach($examAnalytics[0]['analytics'] as $analytics)
+                    <tr>
+                        <td>{{ $analytics['user']->name }}</td>
+                        <td>{{ $analytics['user']->email }}</td>
+                        <td>{{ $analytics['totalScore'] }}</td>
+                        <td>{{ $analytics['averageScore'] }}</td>
+                        <td>{{ $analytics['totalCorrect'] }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <div class="card p-3">
+            <h5 class="card-title">Analytics Siswa</h5>
+            <p class="text-muted">Belum ada data hasil ujian.</p>
+        </div>
+        @endif
+    </div>
 
-        // Add event listener for exam selector
-        const examSelector = document.getElementById('examSelector');
-        if (examSelector) {
-            examSelector.addEventListener('change', function() {
-                const examIndex = this.value;
-                updateCharts(examIndex);
-                updateAnalyticsTable(examIndex);
-            });
-            // Initialize charts and table with first exam data
-            if (examsForChart.length > 0) {
-                updateCharts(0);
-                updateAnalyticsTable(0);
-            }
-        }
-    </script>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const examsForChart = @json($examsForChart);
+const examAnalytics = @json($examAnalytics);
+
+const examCtx = document.getElementById('examChart').getContext('2d');
+
+const examChart = new Chart(examCtx, {
+    type: 'bar',
+    data: {
+        labels: @json($examStats->pluck('title')),
+        datasets: [{
+            label: 'Jumlah Soal',
+            data: @json($examStats->pluck('questions_count')),
+            borderWidth: 1
+        }]
+    },
+    options: { responsive: true }
+});
+
+function updateCharts(examIndex) {
+    const examData = examsForChart[examIndex];
+    if (!examData) return;
+
+    studentScoreChart.data.labels = examData.studentNames;
+    studentScoreChart.data.datasets[0].data = examData.averageScores;
+    studentScoreChart.update();
+
+    studentCorrectChart.data.labels = examData.studentNames;
+    studentCorrectChart.data.datasets[0].data = examData.totalCorrect;
+    studentCorrectChart.update();
+}
+
+const studentScoreChart = new Chart(document.getElementById('studentScoreChart'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: 'Rata-rata Skor', data: [] }] },
+    options: { responsive: true }
+});
+
+const studentCorrectChart = new Chart(document.getElementById('studentCorrectChart'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: 'Jumlah Soal Benar', data: [] }] },
+    options: { responsive: true }
+});
+
+function updateAnalyticsTable(examIndex) {
+    const analyticsData = examAnalytics[examIndex];
+    if (!analyticsData) return;
+
+    document.getElementById('analyticsTableTitle').textContent =
+        'Analytics Siswa - ' + analyticsData.exam.title;
+
+    const tableBody = document.getElementById('analyticsTableBody');
+    tableBody.innerHTML = '';
+
+    analyticsData.analytics.forEach(a => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${a.user.name}</td>
+            <td>${a.user.email}</td>
+            <td>${a.totalScore}</td>
+            <td>${a.averageScore}</td>
+            <td>${a.totalCorrect}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+const selector = document.getElementById('examSelector');
+
+if (selector) {
+    selector.addEventListener('change', function() {
+        updateCharts(this.value);
+        updateAnalyticsTable(this.value);
+    });
+
+    if (examsForChart.length > 0) {
+        updateCharts(0);
+        updateAnalyticsTable(0);
+    }
+}
+</script>
+
 </body>
 </html>

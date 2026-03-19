@@ -22,16 +22,22 @@ class QuestionImport implements ToModel, WithHeadingRow
     */
     public function model(array $row)
     {
-        return new Question([
+        $data = [
             'exam_id' => $this->examId,
             'type' => $row['type'],
             'question' => $row['question'],
-            'option_a' => $row['option_a'] ?? null,
-            'option_b' => $row['option_b'] ?? null,
-            'option_c' => $row['option_c'] ?? null,
-            'option_d' => $row['option_d'] ?? null,
-            'option_e' => $row['option_e'] ?? null,
-            'correct_answer' => $row['type'] == 'essay' ? '-' : ($row['correct_answer'] ?? null),
-        ]);
+            'correct_answer' => $row['type'] == 'essay' ? '-' : $row['correct_answer'],
+        ];
+
+        // Add options only if present
+        $options = ['a', 'b', 'c', 'd', 'e'];
+        foreach ($options as $opt) {
+            if (isset($row["option_{$opt}"]) && $row["option_{$opt}"] !== '') {
+                $data["option_{$opt}"] = $row["option_{$opt}"];
+            }
+        }
+
+        return new Question($data);
+
     }
 }

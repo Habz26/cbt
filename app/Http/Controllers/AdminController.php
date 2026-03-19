@@ -5,42 +5,69 @@ namespace App\Http\Controllers;
 use App\Models\Exam;
 use App\Models\Question;
 use App\Models\User;
+use App\Models\Result;
+use App\Models\Answer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\QuestionImport;
 use App\Imports\UserImport;
+use Illuminate\Support\Facades\Schema;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $kelas = $request->kelas;
+        
         $examCount = Exam::count();
         $questionCount = Question::count();
-        $userCount = User::count();
-        $resultCount = \App\Models\Result::count();
+        
+        $userQuery = User::query();
+        if ($kelas) {
+            $userQuery->where('kelas', $kelas);
+        }
+        $userCount = $userQuery->count();
+        
+        $resultQuery = Result::query();
+        if ($kelas) {
+            $resultQuery->whereHas('user', function ($q) use ($kelas) {
+                $q->where('kelas', $kelas);
+            });
+        }
+        $resultCount = $resultQuery->count();
 
         $examStats = Exam::withCount('questions')->get();
-        $userStats = User::selectRaw('role, count(*) as count')->groupBy('role')->get();
-
-        // Get unique exams that have results (max 2)
-        $examsWithResults = Exam::whereHas('results', function ($q) {
-            $q->whereNotNull('score');
-        })->take(2)->get();
-
-        // Exam-specific analytics (up to 2 exams)
-        $examAnalytics = [];
         
-        // For charts - structured data organized by exam
+        $userStatsQuery = User::selectRaw('kelas, count(*) as count')->whereNotNull('kelas');
+        if ($kelas) {
+            $userStatsQuery->where('kelas', $kelas);
+        }
+        $userStats = $userStatsQuery->groupBy('kelas')->get();
+
+        $examsQuery = Exam::whereHas('results', function ($q) use ($kelas) {
+            $q->whereNotNull('score');
+            if ($kelas) {
+                $q->whereHas('user', function ($uq) use ($kelas) {
+                    $uq->where('kelas', $kelas);
+                });
+            }
+        });
+        $examsWithResults = $examsQuery->take(2)->get();
+
+        $examAnalytics = [];
         $examsForChart = [];
 
         foreach ($examsWithResults as $index => $exam) {
-            // Get results for this specific exam
-            $examResults = \App\Models\Result::with(['user', 'exam.questions'])
+            $examResultsQuery = Result::with(['user', 'exam.questions'])
                 ->where('exam_id', $exam->id)
-                ->whereNotNull('score')
-                ->get()
-                ->groupBy('user_id');
+                ->whereNotNull('score');
+            if ($kelas) {
+                $examResultsQuery->whereHas('user', function ($q) use ($kelas) {
+                    $q->where('kelas', $kelas);
+                });
+            }
+            $examResults = $examResultsQuery->get()->groupBy('user_id');
 
             $analytics = [];
             $studentNames = [];
@@ -50,11 +77,7 @@ class AdminController extends Controller
             foreach ($examResults as $userId => $results) {
                 $user = $results->first()->user;
                 $totalScore = $results->sum('score');
-                
-                // Get total questions for this exam
                 $totalQuestions = $exam->questions->count();
-                
-                // Calculate average score for this exam
                 $averageScore = $totalQuestions > 0 ? round(($totalScore / $totalQuestions) * 100, 1) : 0;
 
                 $analytics[] = [
@@ -75,7 +98,6 @@ class AdminController extends Controller
                 'analytics' => $analytics
             ];
 
-            // Add to chart data structure
             $examsForChart[] = [
                 'id' => $exam->id,
                 'title' => $exam->title,
@@ -85,17 +107,20 @@ class AdminController extends Controller
             ];
         }
 
-        // Legacy support - keep original variables for backward compatibility
         $studentAnalytics = [];
-        $studentResults = \App\Models\Result::with(['user', 'exam.questions'])
-            ->get()
-            ->groupBy('user_id');
+        $studentResultsQuery = Result::with(['user', 'exam.questions']);
+        if ($kelas) {
+            $studentResultsQuery->whereHas('user', function ($q) use ($kelas) {
+                $q->where('kelas', $kelas);
+            });
+        }
+        $studentResults = $studentResultsQuery->get()->groupBy('user_id');
 
         foreach ($studentResults as $userId => $results) {
             $user = $results->first()->user;
             $totalExams = $results->count();
             $totalScore = $results->sum('score');
-            $totalUniqueQuestionsAnswered = \App\Models\Answer::where('user_id', $userId)->distinct('question_id')->count('question_id');
+            $totalUniqueQuestionsAnswered = Answer::where('user_id', $userId)->distinct('question_id')->count('question_id');
             $averageScore = $totalUniqueQuestionsAnswered > 0 ? round(($totalScore / $totalUniqueQuestionsAnswered) * 100, 1) : 0;
 
             $studentAnalytics[] = [
@@ -123,176 +148,111 @@ class AdminController extends Controller
             'studentAverageScores', 
             'studentTotalCorrect',
             'examAnalytics',
-            'examsForChart'
+            'examsForChart',
+            'kelas'
         ));
     }
 
-    public function soal()
+    public function results(Request $request)
     {
-        $questions = Question::with('exam')->get();
-        $numberedQuestions = [];
-        foreach ($questions->groupBy('exam_id') as $examId => $qs) {
-            $number = 1;
-            foreach ($qs as $q) {
-                $q->number = $number++;
-                $numberedQuestions[] = $q;
-            }
+        $kelas = $request->kelas;
+        $exam_id = $request->exam_id;
+        
+        $allExams = Exam::whereHas('results', function ($q) {
+            $q->whereNotNull('score');
+        })->orderBy('title')->get();
+        
+        $examsQuery = Exam::whereHas('results', function ($q) {
+            $q->whereNotNull('score');
+        });
+        
+        if ($exam_id) {
+            $examsQuery->where('id', $exam_id);
         }
-        return view('admin.soal', [
-            'questions' => $numberedQuestions,
-            'exams' => Exam::all(),
-        ]);
-    }
+        
+        $exams = $examsQuery->with('questions')->get();
+        
+        $examResults = [];
 
-    public function storeSoal(Request $r)
-    {
-        if ($r->hasFile('excel_file')) {
-            // Import from Excel
-            $examId = $r->import_exam_id;
-            Excel::import(new QuestionImport($examId), $r->file('excel_file'));
-            return back()->with('success', 'Soal berhasil diimpor dari Excel');
-        } else {
-            // Manual input
-            $data = [
-                'exam_id' => $r->exam_id,
-                'type' => $r->type,
-                'question' => $r->question,
-                'option_a' => $r->option_a,
-                'option_b' => $r->option_b,
-                'option_c' => $r->option_c,
-                'option_d' => $r->option_d,
-                'correct_answer' => $r->type == 'essay' ? '-' : $r->correct_answer,
+        foreach ($exams as $exam) {
+            $questions = $exam->questions->sortBy('id')->values();
+            $pgQuestions = $questions->where('type', 'pg');
+            $essayQuestions = $questions->where('type', 'essay');
+            $pgCount = $pgQuestions->count();
+
+            $resultsQuery = Result::with(['user'])
+                ->where('exam_id', $exam->id)
+                ->whereNotNull('score');
+                
+            if ($kelas) {
+                $resultsQuery->whereHas('user', function ($q) use ($kelas) {
+                    $q->where('kelas', $kelas);
+                });
+            }
+            
+            $results = $resultsQuery->get();
+
+            $pgStudents = [];
+            $essayStudents = [];
+
+            foreach ($results as $result) {
+                $userId = $result->user_id;
+
+                $pgAnswers = Answer::where('user_id', $userId)
+                    ->whereHas('question', function ($q) use ($exam) {
+                        $q->where('exam_id', $exam->id)->where('type', 'pg');
+                    })
+                    ->get()
+                    ->keyBy('question_id');
+
+                $pgAnswerArray = [];
+                foreach ($pgQuestions as $q) {
+                    $pgAnswerArray[$q->id] = $pgAnswers[$q->id]->answer ?? '-';
+                }
+
+                $essayAnswers = Answer::where('user_id', $userId)
+                    ->whereHas('question', function ($q) use ($exam) {
+                        $q->where('exam_id', $exam->id)->where('type', 'essay');
+                    })
+                    ->with('question')
+                    ->get();
+
+                $pgStudents[] = [
+                    'user' => $result->user,
+                    'score' => $result->score,
+                    'pgAnswers' => $pgAnswerArray,
+                    'result_id' => $result->id
+                ];
+
+                $essayStudents[] = [
+                    'user' => $result->user,
+                    'score' => $result->score,
+                    'essayAnswers' => $essayAnswers,
+                    'result_id' => $result->id
+                ];
+            }
+
+            $examResults[] = [
+                'exam' => $exam,
+                'pgQuestions' => $pgQuestions,
+                'essayQuestions' => $essayQuestions,
+                'pgStudents' => $pgStudents,
+                'essayStudents' => $essayStudents,
+                'pgCount' => $pgCount
             ];
-
-            if ($r->hasFile('image')) {
-                $imagePath = $r->file('image')->store('questions', 'public');
-                $data['image'] = $imagePath;
-            }
-
-            Question::create($data);
-
-            return back();
-        }
-    }
-
-    public function editSoal($id)
-    {
-        $question = Question::findOrFail($id);
-        $exams = Exam::all();
-        return view('admin.edit_soal', compact('question', 'exams'));
-    }
-
-    public function updateSoal(Request $r, $id)
-    {
-        $question = Question::findOrFail($id);
-
-        $data = [
-            'exam_id' => $r->exam_id,
-            'type' => $r->type,
-            'question' => $r->question,
-            'option_a' => $r->option_a,
-            'option_b' => $r->option_b,
-            'option_c' => $r->option_c,
-            'option_d' => $r->option_d,
-            'option_e' => $r->option_e,
-            'correct_answer' => $r->type == 'essay' ? '-' : $r->correct_answer,
-        ];
-
-        // Handle main image
-        if ($r->hasFile('image')) {
-            $imagePath = $r->file('image')->store('questions', 'public');
-            $data['image'] = $imagePath;
         }
 
-        // Handle option images
-        $optionImages = ['option_a_image', 'option_b_image', 'option_c_image', 'option_d_image', 'option_e_image'];
-        foreach ($optionImages as $optionImage) {
-            if ($r->hasFile($optionImage)) {
-                $imagePath = $r->file($optionImage)->store('question_options', 'public');
-                $data[$optionImage] = $imagePath;
-            }
-        }
-
-        $question->update($data);
-
-        return redirect('/admin/soal')->with('success', 'Soal berhasil diupdate');
+        $examsList = $allExams;
+        return view('admin.results', compact('examResults', 'kelas', 'examsList', 'exam_id'));
     }
 
-    public function deleteSoal($id)
+    public function resetResult($resultId)
     {
-        Question::destroy($id);
-        return back();
+        $result = Result::findOrFail($resultId);
+        $result->update(['score' => null, 'progress' => []]);
+        return back()->with('success', 'Hasil ujian siswa berhasil direset. Siswa dapat mengerjakan ulang.');
     }
 
-    public function exam()
-    {
-        $exams = Exam::all();
-        return view('admin.exam', compact('exams'));
-    }
-    public function storeExam(Request $r)
-    {
-        Exam::create([
-            'title' => $r->title,
-            'duration' => $r->duration,
-            'start_time' => $r->start_time,
-            'end_time' => $r->end_time,
-        ]);
-
-        return back();
-    }
-
-    public function editExam($id)
-    {
-        $exam = Exam::findOrFail($id);
-        return view('admin.edit_exam', compact('exam'));
-    }
-
-    public function updateExam(Request $r, $id)
-    {
-        $exam = Exam::findOrFail($id);
-
-        $exam->update([
-            'title' => $r->title,
-            'duration' => $r->duration,
-            'start_time' => $r->start_time,
-            'end_time' => $r->end_time,
-        ]);
-
-        return redirect('/admin/exam')->with('success', 'Ujian berhasil diupdate');
-    }
-
-    public function deleteExam($id)
-    {
-        Exam::destroy($id);
-        return back();
-    }
-
-    public function results()
-    {
-        $results = \App\Models\Result::with(['user', 'exam'])->whereNotNull('score')->get();
-
-        // Add answers to each result
-        foreach ($results as $result) {
-            $examQuestions = $result->exam->questions->sortBy('id')->pluck('id')->toArray();
-            $answers = \App\Models\Answer::where('user_id', $result->user_id)
-                ->whereHas('question', function ($q) use ($result) {
-                    $q->where('exam_id', $result->exam_id);
-                })
-                ->with('question')
-                ->get()
-                ->unique('question_id')
-                ->sortBy(function ($answer) use ($examQuestions) {
-                    return array_search($answer->question_id, $examQuestions);
-                })
-                ->values();
-
-            $result->answers = $answers;
-        }
-
-        return view('admin.results', compact('results'));
-    }
-
-    // User Management
     public function users()
     {
         $users = User::all();
@@ -304,23 +264,229 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
             'role' => 'required|in:admin,student',
+            'kelas' => 'nullable|string|max:20',
         ]);
 
-        User::create([
+        $userData = [
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'plain_password' => $request->password,
             'role' => $request->role,
-        ]);
+            'kelas' => $request->kelas,
+        ];
+
+        if (Schema::hasColumn('users', 'plain_password')) {
+            $userData['plain_password'] = $request->password;
+        }
+
+        User::create($userData);
 
         return redirect('/admin/users')->with('success', 'User berhasil ditambahkan');
     }
 
+    /**
+     * Kelola Soal - Index
+     */
+public function soal()
+    {
+        $exams = Exam::with(['questions' => function($query) {
+            $query->orderBy('id');
+        }])->get();
+        
+        $exams->each(function ($exam) {
+            $exam->questions->values()->each(function ($question, $index) {
+                $question->number = $index + 1;
+            });
+        });
+        
+        return view('admin.soal', compact('exams'));
+    }
+
+    /**
+     * Store Soal (single + import)
+     */
+    public function storeSoal(Request $request)
+    {
+        if ($request->hasFile('excel_file')) {
+            // Import Excel
+            $request->validate([
+                'import_exam_id' => 'required|exists:exams,id',
+                'excel_file' => 'required|file|mimes:xlsx,xls|max:2048'
+            ]);
+
+            Excel::import(new QuestionImport($request->import_exam_id), $request->file('excel_file'));
+
+            return back()->with('success', 'Soal berhasil diimport dari Excel!');
+        } else {
+            // Single soal
+            $request->validate([
+                'exam_id' => 'required|exists:exams,id',
+                'type' => 'required|in:pg,essay',
+                'question' => 'required|string|max:1000',
+                'image' => 'nullable|image|max:2048',
+                'option_a' => 'required_if:type,pg',
+                'option_b' => 'required_if:type,pg',
+                'option_c' => 'required_if:type,pg',
+                'option_d' => 'required_if:type,pg',
+                'correct_answer' => 'required_if:type,pg|in:A,B,C,D,E'
+            ]);
+
+            $data = $request->only(['exam_id', 'type', 'question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'correct_answer']);
+
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('questions', 'public');
+            }
+
+            // Option images
+            $optionFields = ['option_a_image', 'option_b_image', 'option_c_image', 'option_d_image', 'option_e_image'];
+            foreach ($optionFields as $field) {
+                if ($request->hasFile($field)) {
+                    $data[$field] = $request->file($field)->store('options', 'public');
+                }
+            }
+
+            Question::create($data);
+
+            return back()->with('success', 'Soal berhasil ditambahkan!');
+        }
+    }
+
+    public function editSoal($id)
+    {
+        $question = Question::findOrFail($id);
+        $exams = Exam::all();
+        return view('admin.edit_soal', compact('question', 'exams'));
+    }
+
+    public function updateSoal(Request $request, $id)
+    {
+        $question = Question::findOrFail($id);
+
+        $request->validate([
+            'exam_id' => 'required|exists:exams,id',
+            'type' => 'required|in:pg,essay',
+            'question' => 'required|string|max:1000',
+            'image' => 'nullable|image|max:2048',
+            'option_a' => 'required_if:type,pg',
+            'option_b' => 'required_if:type,pg',
+            'option_c' => 'required_if:type,pg',
+            'option_d' => 'required_if:type,pg',
+            'correct_answer' => 'required_if:type,pg|in:A,B,C,D,E'
+        ]);
+
+        $data = $request->only(['exam_id', 'type', 'question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'correct_answer']);
+
+        if ($request->hasFile('image')) {
+            // Delete old
+            if ($question->image) {
+                \Storage::disk('public')->delete($question->image);
+            }
+            $data['image'] = $request->file('image')->store('questions', 'public');
+        }
+
+        $optionFields = ['option_a_image', 'option_b_image', 'option_c_image', 'option_d_image', 'option_e_image'];
+        foreach ($optionFields as $field) {
+            if ($request->hasFile($field)) {
+                if ($question->$field) {
+                    \Storage::disk('public')->delete($question->$field);
+                }
+                $data[$field] = $request->file($field)->store('options', 'public');
+            }
+        }
+
+        $question->update($data);
+
+        return redirect('/admin/soal')->with('success', 'Soal berhasil diupdate!');
+    }
+
+    public function deleteSoal($id)
+    {
+        $question = Question::findOrFail($id);
+        
+        // Delete images
+        if ($question->image) \Storage::disk('public')->delete($question->image);
+        $optionFields = ['option_a_image', 'option_b_image', 'option_c_image', 'option_d_image', 'option_e_image'];
+        foreach ($optionFields as $field) {
+            if ($question->$field) \Storage::disk('public')->delete($question->$field);
+        }
+
+        $question->delete();
+
+        return back()->with('success', 'Soal berhasil dihapus!');
+    }
+
+    /**
+     * Kelola Ujian - Index
+     */
+    public function exam()
+    {
+        $exams = Exam::all();
+        return view('admin.exam', compact('exams'));
+    }
+
+    /**
+     * Store Exam
+     */
+    public function storeExam(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255|unique:exams',
+            'duration' => 'required|integer|min:10|max:360',
+            'start_time' => 'required|date|after:now',
+            'end_time' => 'required|date|after:start_time'
+        ]);
+
+        Exam::create($request->all());
+
+        return back()->with('success', 'Ujian berhasil ditambahkan!');
+    }
+
+    public function editExam($id)
+    {
+        $exam = Exam::findOrFail($id);
+        return view('admin.edit_exam', compact('exam'));
+    }
+
+    public function updateExam(Request $request, $id)
+    {
+        $exam = Exam::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255|unique:exams,title,' . $id,
+            'duration' => 'required|integer|min:10|max:360',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time'
+        ]);
+
+        $exam->update($request->all());
+
+        return redirect('/admin/exam')->with('success', 'Ujian berhasil diupdate!');
+    }
+
+    public function deleteExam($id)
+    {
+        $exam = Exam::findOrFail($id);
+        // Cascade delete questions/images handled via events or manually if needed
+        $exam->questions()->delete(); // Simple delete
+        $exam->delete();
+
+        return back()->with('success', 'Ujian dan soal-soalnya berhasil dihapus!');
+    }
+
+    /**
+     * Jadwal Ujian
+     */
+    public function schedule()
+    {
+        $exams = Exam::orderBy('start_time')->get();
+        return view('admin.schedule', compact('exams'));
+    }
+
+    // Additional users methods (for completeness)
     public function editUser($id)
     {
         $user = User::findOrFail($id);
@@ -331,51 +497,51 @@ class AdminController extends Controller
     {
         $user = User::findOrFail($id);
 
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'username' => 'required|string|max:255|unique:users,username,' . $id,
+            'email' => 'required|email|max:255|unique:users,email,' . $id,
             'role' => 'required|in:admin,student',
-        ]);
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ]);
+            'kelas' => 'nullable|string|max:20',
+        ];
 
         if ($request->filled('password')) {
-            $user->update([
-                'password' => Hash::make($request->password),
-                'plain_password' => $request->password,
-            ]);
+            $rules['password'] = 'string|min:6';
         }
 
-        return redirect('/admin/users')->with('success', 'User berhasil diupdate');
+        $request->validate($rules);
+
+        $data = $request->only(['name', 'username', 'email', 'role', 'kelas']);
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+            if (Schema::hasColumn('users', 'plain_password')) {
+                $data['plain_password'] = $request->password;
+            }
+        }
+
+        $user->update($data);
+
+        return redirect('/admin/users')->with('success', 'User berhasil diupdate!');
     }
 
     public function deleteUser($id)
     {
-        User::destroy($id);
-        return redirect('/admin/users')->with('success', 'User berhasil dihapus');
+        $user = User::findOrFail($id);
+        $user->delete();
+        return back()->with('success', 'User berhasil dihapus!');
     }
 
-    public function importUsers(Request $request)
+public function importUsers(Request $request)
     {
         $request->validate([
-            'excel_file' => 'required|mimes:xlsx,xls',
+            'file' => 'required|file|mimes:xlsx,xls|max:2048'
         ]);
 
-        Excel::import(new UserImport(), $request->file('excel_file'));
+        Excel::import(new UserImport, $request->file('file'));
 
-        return redirect('/admin/users')->with('success', 'Users berhasil diimpor dari Excel');
+        return redirect('/admin/users')->with('success', 'Users berhasil diimport!');
     }
 
 
-
-    // Exam Schedule
-    public function schedule()
-    {
-        $exams = Exam::orderBy('start_time')->get();
-        return view('admin.schedule', compact('exams'));
-    }
 }

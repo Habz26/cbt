@@ -1,6 +1,6 @@
-# CBT SPMB - SMK Al-Falah
+# CBT SMKS AL-FALAH NAGREG - SMK Al-Falah
 
-CBT SPMB adalah aplikasi Computer Based Test (CBT) yang digunakan untuk proses Seleksi Penerimaan Murid Baru (SPMB) di SMK Al-Falah. Sistem ini dirancang untuk pelaksanaan ujian berbasis komputer dengan manajemen data terpusat, sistem penjadwalan ujian, serta monitoring hasil secara real-time.
+CBT SMKS AL-FALAH NAGREG adalah aplikasi Computer Based Test (CBT) yang digunakan untuk proses Seleksi Penerimaan Murid Baru (SPMB) di SMK Al-Falah. Sistem ini dirancang untuk pelaksanaan ujian berbasis komputer dengan manajemen data terpusat, sistem penjadwalan ujian, serta monitoring hasil secara real-time.
 
 Aplikasi memiliki 2 role utama:
 - Admin
@@ -290,7 +290,7 @@ Jawaban Benar
 Tersedia tombol Logout.
 
 ## 🎯 Tujuan Sistem
-CBT SPMB dibuat untuk:
+CBT SMKS AL-FALAH NAGREG dibuat untuk:
 
 Mempermudah proses seleksi siswa baru
 

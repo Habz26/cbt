@@ -21,10 +21,8 @@ class ExamController extends Controller
 
     public function start($id)
     {
-        // ambil exam + soal
         $exam = Exam::with('questions')->findOrFail($id);
 
-        // cek apakah ujian aktif
         if (now() < $exam->start_time) {
             return redirect('/siswa')->with('error', 'Ujian belum dimulai.');
         }
@@ -33,65 +31,80 @@ class ExamController extends Controller
             return redirect('/siswa')->with('error', 'Ujian sudah berakhir.');
         }
 
-        // cek apakah siswa sudah pernah mengerjakan ujian ini
-        $existingResult = Result::where('user_id', auth()->id())
-                                ->where('exam_id', $id)
-                                ->first();
-
-        if ($existingResult && $existingResult->score !== null) {
-            return redirect('/siswa')->with('error', 'Anda sudah mengerjakan ujian ini sebelumnya.');
-        }
-
-        // jika belum ada result, buat baru untuk menyimpan progress
-        if (!$existingResult) {
-            $existingResult = Result::create([
+        // Ensure single Result per user-exam (firstOrCreate)
+        $result = Result::firstOrCreate(
+            [
                 'user_id' => auth()->id(),
                 'exam_id' => $id,
-                'progress' => []
-            ]);
+            ],
+            ['progress' => []]
+        );
+
+        if ($result->score !== null) {
+            return redirect('/siswa')->with('error', 'Anda sudah menyelesaikan ujian ini.');
         }
 
-        return view('siswa.start', compact('exam', 'existingResult'));
+        return view('siswa.start', compact('exam', 'result'));
     }
 
     public function submit(Request $r, $id)
     {
         $r->validate([
-            'answers'=>'required|array'
+            'answers' => 'required|array'
         ]);
 
-        $score = 0;
-        $totalQuestions = 0;
+        $exam = Exam::findOrFail($id);
+        $userId = auth()->id();
 
-        foreach($r->answers as $qid=>$ans){
-            $q = Question::where('id',$qid)->where('exam_id',$id)->firstOrFail();
-            $totalQuestions++;
+        // Get or create the single Result record
+        $result = Result::firstOrCreate(
+            ['user_id' => $userId, 'exam_id' => $id],
+            ['progress' => []]
+        );
 
-            Answer::create([
-                'user_id'=>auth()->id(),
-                'question_id'=>$qid,
-                'answer'=>$ans
-            ]);
-
-            if($q->type=='pg' && $q->correct_answer==$ans){
-                $score++;
-            }
+        if ($result->score !== null) {
+            return redirect('/siswa')->with('error', 'Ujian sudah disubmit sebelumnya.');
         }
 
-        Result::create([
-            'user_id'=>auth()->id(),
-            'exam_id'=>$id,
-            'score'=>$score
-        ]);
+        $score = 0;
+        $pgQuestions = $exam->questions()->where('type', 'pg')->count();
 
-        return redirect('/siswa/result/'.$id)->with('success','Ujian selesai');
+
+        foreach ($r->answers as $qid => $ans) {
+            $question = Question::where('id', $qid)->where('exam_id', $id)->firstOrFail();
+
+            // Upsert Answer (update if exists, create if not)
+            Answer::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'question_id' => $qid
+                ],
+                ['answer' => $ans]
+            );
+
+
+            // Score ONLY PG questions (essay manual grading by teacher)
+            if ($question->type == 'pg' && $question->correct_answer == $ans) {
+                $score++;
+            }
+            // Essay: 0 auto-points, show in results for manual review
+
+        }
+
+        // Update the existing Result with final score
+        $result->update(['score' => $score]);
+
+        return redirect('/siswa/result/' . $id)->with('success', 'Ujian selesai! Skor PG: ' . $score . '/' . $pgQuestions);
+
     }
 
     public function result($examId)
     {
         $result = Result::where('user_id', auth()->id())
                         ->where('exam_id', $examId)
-                        ->with('exam')
+                        ->with(['exam.questions.answers' => function ($query) {
+                            $query->where('user_id', auth()->id());
+                        }])
                         ->firstOrFail();
 
         return view('siswa.result', compact('result'));
