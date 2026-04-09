@@ -7,8 +7,10 @@
     <title>Ujian: {{ $exam->title }} - CBT SMKS AL-FALAH NAGREG</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="/css/responsive.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body {
@@ -18,8 +20,9 @@
         }
 
         .exam-container {
-            max-width: 1100px;
-            margin: auto;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .topbar {
@@ -96,7 +99,7 @@
 
         img {
             border-radius: 10px;
-            max-width: 100%;
+            max-width: 25%;
             height: auto;
         }
 
@@ -243,12 +246,35 @@ function formatTime(sec){
 }
 
 const timerDiv = document.getElementById('timer');
+let timeUpWarning = false;
 const timer = setInterval(()=>{
     timerDiv.innerHTML = "Sisa Waktu: " + formatTime(duration);
+    
+    if (duration <= 30 && !timeUpWarning) {
+        timeUpWarning = true;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Waktu Hampir Habis!',
+            text: 'Sisa waktu kurang dari 30 detik. Segera selesaikan ujian!',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    }
+    
     duration--;
-    if(duration < 0){
+if(duration < 0){
         clearInterval(timer);
-        examForm.submit();
+        // Direct server submit then redirect - NO browser popup
+        fetch('/siswa/ujian/{{ $exam->id }}/force-submit', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        }).then(() => {
+            window.location.replace('/siswa'); // replace() prevents back bypass
+        }).catch(() => {
+            window.location.replace('/siswa');
+        });
     }
 },1000);
 
@@ -320,9 +346,20 @@ function saveProgress(){
 
 setInterval(saveProgress,30000);
 
-window.onbeforeunload = function(){
-    return "Ujian sedang berlangsung.";
-};
+// NO browserunload - Silent server redirect
+// Tab switch prevention
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden && duration > 0) {
+        fetch('/siswa/ujian/{{ $exam->id }}/force-submit', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        }).then(() => {
+            window.location.replace('/siswa');
+        });
+    }
+});
 
 /* SUBMIT */
 document.getElementById('submitExam').onclick = function(){

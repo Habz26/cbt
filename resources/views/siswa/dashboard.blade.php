@@ -130,9 +130,13 @@
 
                             <div class="mt-3">
                                 @if($status == 'Aktif')
-                                    <a href="/siswa/ujian/{{ $exam->id }}" class="btn {{ $btnClass }} w-100">
+                                    <button class="btn {{ $btnClass }} w-100" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#confirmExamModal"
+                                            data-exam-url="/siswa/ujian/{{ $exam->id }}"
+                                            data-exam-title="{{ $exam->title }}">
                                         {{ $btnText }}
-                                    </a>
+                                    </button>
                                 @else
                                     <button class="btn {{ $btnClass }} w-100" disabled>
                                         {{ $btnText }}
@@ -143,6 +147,32 @@
                     </div>
                 @endforeach
             </div>
+
+            <!-- Single Confirmation Modal - Centered Full Overlay -->
+            <div class="modal fade" id="confirmExamModal" tabindex="-1" aria-labelledby="confirmExamModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="confirmExamModalLabel">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span id="modalExamTitle">PETUNJUK PENGERJAAN UJIAN SEKOLAH (CBT)</span>
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="modalExamRules" style="font-size: 0.95em; line-height: 1.6; white-space: pre-line;">
+                            <!-- Rules content populated by JS -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i>Batal
+                            </button>
+                            <button type="button" class="btn btn-success" id="startExamBtn">
+                                <i class="bi bi-play-circle me-1"></i>Mulai Ujian
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         @endif
 
         <form method="POST" action="/logout" class="text-center logout">
@@ -151,5 +181,51 @@
         </form>
 
     </div>
+
+    <!-- Bootstrap JS for modals -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Dynamic modal population for exam confirmation
+        var confirmModal = document.getElementById('confirmExamModal');
+        if (confirmModal) {
+            confirmModal.addEventListener('show.bs.modal', function (event) {
+                var triggerButton = event.relatedTarget;
+                var examTitle = triggerButton.getAttribute('data-exam-title') || 'Ujian';
+                var examUrl = triggerButton.getAttribute('data-exam-url');
+                var startBtn = document.getElementById('startExamBtn');
+                
+                // Set title
+                document.getElementById('modalExamTitle').textContent = examTitle;
+                
+                // Rules text (fixed)
+                document.getElementById('modalExamRules').textContent = `PETUNJUK PENGERJAAN UJIAN SEKOLAH (CBT)
+
+Harap dibaca dengan seksama sebelum memulai ujian:
+
+-Ujian ini berbasis komputer dan dikerjakan secara mandiri.
+-Waktu ujian terbatas, perhatikan timer yang tersedia di layar.
+-Setiap soal hanya memiliki satu jawaban yang benar.
+-Pilih jawaban dengan mengklik opsi yang tersedia.
+-Anda dapat berpindah soal menggunakan tombol navigasi (Next/Previous atau nomor soal).
+-Jawaban akan tersimpan otomatis, namun pastikan semua soal telah dijawab sebelum mengakhiri ujian.
+-Jangan menutup browser, refresh halaman, atau keluar dari sistem selama ujian berlangsung.
+-Jika terjadi kendala teknis, segera hubungi pengawas.
+-Dilarang bekerja sama atau menggunakan bantuan dalam bentuk apa pun.
+-Klik tombol "Selesai" jika Anda telah menyelesaikan seluruh soal.
+
+PERHATIAN:
+
+Setelah menekan tombol "Selesai", Anda tidak dapat kembali mengerjakan soal.
+
+Silakan klik "Mulai" untuk memulai ujian.`;
+                
+                // Set redirect URL
+                startBtn.onclick = function() {
+                    window.location.href = examUrl;
+                };
+            });
+        }
+    </script>
 </body>
 </html>

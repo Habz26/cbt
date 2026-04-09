@@ -142,26 +142,48 @@
             @csrf
             @method('PUT')
 
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="mb-3">
                 <label class="form-label">Nama Ujian</label>
-                <input type="text" name="title" class="form-control" value="{{ $exam->title }}" required>
+                <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $exam->title) }}" required>
+                @error('title')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Durasi (menit)</label>
-                <input type="number" name="duration" class="form-control" value="{{ $exam->duration }}" required>
+                <input type="number" name="duration" class="form-control @error('duration') is-invalid @enderror" value="{{ old('duration', $exam->duration) }}" min="10" max="360" required>
+                @error('duration')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Waktu Mulai</label>
                 <input type="datetime-local" name="start_time" class="form-control"
-                    value="{{ \Carbon\Carbon::parse($exam->start_time)->format('Y-m-d\TH:i') }}" required>
+                    value="{{ old('start_time', \Carbon\Carbon::parse($exam->start_time)->format('Y-m-d\TH:i')) }}" required class="form-control @error('start_time') is-invalid @enderror">
+                @error('start_time')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Waktu Selesai</label>
                 <input type="datetime-local" name="end_time" class="form-control"
-                    value="{{ \Carbon\Carbon::parse($exam->end_time)->format('Y-m-d\TH:i') }}" required>
+                    value="{{ old('end_time', \Carbon\Carbon::parse($exam->end_time)->format('Y-m-d\TH:i')) }}" required class="form-control @error('end_time') is-invalid @enderror">
+                @error('end_time')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="d-flex gap-2 mt-3">

@@ -118,8 +118,8 @@
     <div class="sidebar-title">CBT Admin</div>
 
     <a href="/admin"><i class="fas fa-chart-line"></i> Dashboard</a>
-    <a href="/admin/soal" class="active"><i class="fas fa-file-alt"></i> Kelola Soal</a>
     <a href="/admin/exam"><i class="fas fa-clipboard-list"></i> Kelola Ujian</a>
+    <a href="/admin/soal" class="active"><i class="fas fa-file-alt"></i> Kelola Soal</a>
     <a href="/admin/users"><i class="fas fa-users"></i> Kelola User</a>
     <a href="/admin/schedule"><i class="fas fa-calendar"></i> Jadwal Ujian</a>
     <a href="/admin/results"><i class="fas fa-chart-bar"></i> Monitoring Hasil</a>

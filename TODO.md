@@ -1,15 +1,15 @@
-# TODO: Fix Errors in Kelola Soal, Kelola Ujian, Jadwal Ujian
+# Fix User trashed() Error - Progress Tracker
 
-## Approved Plan Steps
-- [x] Step 1: Add missing methods to AdminController.php (soal, exam, schedule index; CRUD for soal/exam)
+## ✅ Completed
+- [x] 1. Create migration for soft deletes on users table  
+- [x] 2. Run migration (`php artisan migrate`)
+- [x] 3. Add SoftDeletes trait to User model
+- [x] 4. Update AdminController users() method to use withTrashed()
 
-- [x] Step 2: Test pages load without errors (/admin/soal, /admin/exam, /admin/schedule) - Fixed syntax, pages should load.
+## 🔄 In Progress
+- [ ] 5. Update deleteUser() method (ensure soft delete)
 
-- [ ] Step 3: Test create exam/soal (forms, validation, storage)
-- [ ] Step 4: Test import Excel soal
-- [ ] Step 5: Test edit/update/delete
-- [x] Step 6: Run `php artisan storage:link` for images - Already exists.
-
-- [ ] Step 7: Verify no regressions in dashboard/results/users
-- [ ] Complete: attempt_completion
-
+## ⏳ Todo
+- [ ] 6. Clear Laravel caches (`php artisan view:clear && php artisan cache:clear`)
+- [ ] 7. Test /admin/users endpoint
+- [ ] 8. Test delete/restore functionality

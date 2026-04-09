@@ -10,7 +10,7 @@ Route::get('/', fn() => view('login'))->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'session'])->group(function () {
     Route::get('/dashboard', function () {
         return auth()->user()->role === 'admin' ? redirect('/admin') : redirect('/siswa');
     });
@@ -37,6 +37,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/users/{id}/edit', [AdminController::class, 'editUser']);
             Route::put('/users/{id}', [AdminController::class, 'updateUser']);
             Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+            Route::post('/users/{id}/reset-session', [AdminController::class, 'resetSession']);
+            Route::delete('/results/{resultId}', [AdminController::class, 'deleteResult']);
 
             Route::get('/schedule', [AdminController::class, 'schedule']);
         });

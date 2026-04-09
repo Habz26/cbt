@@ -22,6 +22,7 @@ class UserImport implements ToModel, WithHeadingRow
         $email = $row['email'] ?? ($row['Email'] ?? null);
         $password = $row['password'] ?? ($row['Password'] ?? ($row['massword'] ?? ($row['Massword'] ?? null)));
         $role = $row['role'] ?? ($row['Role'] ?? 'student');
+        $kelas = $row['kelas'] ?? ($row['Kelas'] ?? null);
 
         // Validate required fields
         if (!$name || !$email || !$password) {
@@ -35,6 +36,7 @@ class UserImport implements ToModel, WithHeadingRow
             'password' => Hash::make($password),
             'plain_password' => $password,
             'role' => $role,
+            'kelas' => $kelas,
         ]);
     }
 }

@@ -158,13 +158,14 @@ class AdminController extends Controller
         $kelas = $request->kelas;
         $exam_id = $request->exam_id;
         
-        $allExams = Exam::whereHas('results', function ($q) {
-            $q->whereNotNull('score');
-        })->orderBy('title')->get();
+$allExams = Exam::orderBy('title')->get();
+        $allStudentsQuery = User::where('role', 'student');
+        if ($kelas) {
+            $allStudentsQuery->where('kelas', $kelas);
+        }
+        $allStudents = $allStudentsQuery->get();
         
-        $examsQuery = Exam::whereHas('results', function ($q) {
-            $q->whereNotNull('score');
-        });
+$examsQuery = Exam::query();
         
         if ($exam_id) {
             $examsQuery->where('id', $exam_id);
@@ -180,9 +181,8 @@ class AdminController extends Controller
             $essayQuestions = $questions->where('type', 'essay');
             $pgCount = $pgQuestions->count();
 
-            $resultsQuery = Result::with(['user'])
-                ->where('exam_id', $exam->id)
-                ->whereNotNull('score');
+$resultsQuery = Result::with(['user'])
+                ->where('exam_id', $exam->id);
                 
             if ($kelas) {
                 $resultsQuery->whereHas('user', function ($q) use ($kelas) {
@@ -190,13 +190,16 @@ class AdminController extends Controller
                 });
             }
             
-            $results = $resultsQuery->get();
+            $results = $resultsQuery->get()->keyBy('user_id');
 
             $pgStudents = [];
             $essayStudents = [];
 
-            foreach ($results as $result) {
-                $userId = $result->user_id;
+            foreach ($allStudents as $student) {
+                $userId = $student->id;
+                $result = $results[$userId] ?? null;
+                $score = $result ? $result->score : '-';
+                $result_id = $result ? $result->id : null;
 
                 $pgAnswers = Answer::where('user_id', $userId)
                     ->whereHas('question', function ($q) use ($exam) {
@@ -218,17 +221,17 @@ class AdminController extends Controller
                     ->get();
 
                 $pgStudents[] = [
-                    'user' => $result->user,
-                    'score' => $result->score,
+                    'user' => $student,
+                    'score' => $score,
                     'pgAnswers' => $pgAnswerArray,
-                    'result_id' => $result->id
+                    'result_id' => $result_id
                 ];
 
                 $essayStudents[] = [
-                    'user' => $result->user,
-                    'score' => $result->score,
+                    'user' => $student,
+                    'score' => $score,
                     'essayAnswers' => $essayAnswers,
-                    'result_id' => $result->id
+                    'result_id' => $result_id
                 ];
             }
 
@@ -243,7 +246,14 @@ class AdminController extends Controller
         }
 
         $examsList = $allExams;
-        return view('admin.results', compact('examResults', 'kelas', 'examsList', 'exam_id'));
+        return view('admin.results', compact('examResults', 'allStudents', 'kelas', 'examsList', 'exam_id'));
+    }
+
+    public function deleteResult($resultId)
+    {
+        $result = Result::findOrFail($resultId);
+        $result->delete();
+        return back()->with('success', 'Data hasil siswa berhasil dihapus dari database.');
     }
 
     public function resetResult($resultId)
@@ -253,10 +263,33 @@ class AdminController extends Controller
         return back()->with('success', 'Hasil ujian siswa berhasil direset. Siswa dapat mengerjakan ulang.');
     }
 
-    public function users()
+public function users()
     {
-        $users = User::all();
+        $users = User::withTrashed()
+                     ->orderBy('role')
+                     ->orderBy('kelas')
+                     ->orderBy('name')
+                     ->get();
         return view('admin.users', compact('users'));
+    }
+
+    public function resetSession($id)
+    {
+        $user = User::findOrFail($id);
+        $oldSessionId = $user->current_session_id;
+        $user->current_session_id = null;
+        $user->save();
+
+        // Delete session file to prevent reuse
+        if ($oldSessionId) {
+            $sessionPath = storage_path('framework/sessions/' . $oldSessionId);
+            if (file_exists($sessionPath)) {
+                unlink($sessionPath);
+            }
+        }
+
+        // User will be logged out on next request via CheckActiveSession middleware
+        return back()->with('success', 'Sesi user ' . $user->name . ' berhasil direset. User akan logout otomatis pada akses berikutnya.');
     }
 
     public function storeUser(Request $request)
@@ -466,7 +499,7 @@ public function soal()
 
         return redirect('/admin/exam')->with('success', 'Ujian berhasil diupdate!');
     }
-
+    
     public function deleteExam($id)
     {
         $exam = Exam::findOrFail($id);

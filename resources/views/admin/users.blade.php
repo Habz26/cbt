@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kelola User - Admin</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
@@ -15,7 +15,7 @@
             overflow-x: hidden;
         }
 
-        /* SIDEBAR (SAMA PERSIS DASHBOARD) */
+        /* SIDEBAR */
         .sidebar {
             position: fixed;
             top: 20px;
@@ -70,7 +70,6 @@
             padding: 30px;
         }
 
-        /* TOPBAR */
         .topbar {
             background: rgba(255,255,255,0.75);
             backdrop-filter: blur(12px);
@@ -80,7 +79,6 @@
             margin-bottom: 20px;
         }
 
-        /* CARD (SAMA DASHBOARD) */
         .card {
             border: none;
             border-radius: 18px;
@@ -95,12 +93,10 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.08);
         }
 
-        /* FORM */
         .form-control, .form-select, .btn {
             border-radius: 10px;
         }
 
-        /* TABLE */
         .table thead {
             background: #f1f3f5;
         }
@@ -111,6 +107,16 @@
 
         .table tbody tr:hover {
             background: rgba(13,110,253,0.05);
+        }
+
+        .badge-online {
+            background: #198754;
+            color: white;
+        }
+
+        .badge-offline {
+            background: #6c757d;
+            color: white;
         }
 
         h5, h6 {
@@ -124,14 +130,12 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
     <div class="sidebar-title">CBT Admin</div>
-
     <a href="/admin"><i class="fas fa-chart-line"></i> Dashboard</a>
-    <a href="/admin/soal"><i class="fas fa-file-alt"></i> Kelola Soal</a>
     <a href="/admin/exam"><i class="fas fa-clipboard-list"></i> Kelola Ujian</a>
+    <a href="/admin/soal"><i class="fas fa-file-alt"></i> Kelola Soal</a>
     <a href="/admin/users" class="active"><i class="fas fa-users"></i> Kelola User</a>
     <a href="/admin/schedule"><i class="fas fa-calendar"></i> Jadwal Ujian</a>
     <a href="/admin/results"><i class="fas fa-chart-bar"></i> Monitoring Hasil</a>
-
     <form method="POST" action="/logout" class="logout">
         @csrf
         <button class="btn btn-danger w-100">Logout</button>
@@ -140,16 +144,13 @@
 
 <!-- MAIN -->
 <div class="main">
-
-    <!-- TOPBAR -->
     <div class="topbar">
         <h5 class="mb-0">Kelola User</h5>
-        <small class="text-muted">Manajemen akun pengguna</small>
+        <small class="text-muted">Manajemen akun pengguna & monitoring sesi aktif</small>
     </div>
 
     <!-- FORM TAMBAH -->
     <div class="card p-4 mb-4">
-
         @if($errors->any())
             <div class="alert alert-danger">
                 <ul class="mb-0">
@@ -170,32 +171,21 @@
             @csrf
             <div class="row g-3">
                 <div class="col-md-2">
-                    <input type="text" name="name" placeholder="Nama"
-                        class="form-control @error('name') is-invalid @enderror"
-                        value="{{ old('name') }}" required>
+                    <input type="text" name="name" placeholder="Nama" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
                     @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-
                 <div class="col-md-2">
-                    <input type="text" name="username" placeholder="Username"
-                        class="form-control @error('username') is-invalid @enderror"
-                        value="{{ old('username') }}" required>
+                    <input type="text" name="username" placeholder="Username" class="form-control @error('username') is-invalid @enderror" value="{{ old('username') }}" required>
                     @error('username') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-
                 <div class="col-md-2">
-                    <input type="email" name="email" placeholder="Email"
-                        class="form-control @error('email') is-invalid @enderror"
-                        value="{{ old('email') }}" required>
+                    <input type="email" name="email" placeholder="Email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required>
                     @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-
                 <div class="col-md-2">
-                    <input type="password" name="password" placeholder="Password"
-                        class="form-control @error('password') is-invalid @enderror" required>
+                    <input type="password" name="password" placeholder="Password" class="form-control @error('password') is-invalid @enderror" required>
                     @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-
                 <div class="col-md-2">
                     <select name="role" class="form-select @error('role') is-invalid @enderror" required>
                         <option value="student">Student</option>
@@ -203,7 +193,6 @@
                     </select>
                     @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-
                 <div class="col-md-2">
                     <select name="kelas" class="form-select">
                         <option value="">Kelas</option>
@@ -215,7 +204,6 @@
                         <option value="XII RPL">XII RPL</option>
                     </select>
                 </div>
-
                 <div class="col-md-2">
                     <button class="btn btn-primary w-100">Tambah</button>
                 </div>
@@ -224,74 +212,94 @@
     </div>
 
     <!-- IMPORT -->
-<div class="card p-4 mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="mb-0">Import Users</h6>
-    </div>
-
-    <form method="POST" action="/admin/users/import" enctype="multipart/form-data">
-        @csrf
-        <div class="row g-3 align-items-center">
-
-<div class="col-md-8">
-                <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
-                <small class="text-muted">Format Excel: name, username, email, password, role (header row required)</small>
-            </div>
-
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-success w-100">
-                    <i class="fas fa-upload me-1"></i> Import Excel
-                </button>
-            </div>
-
+    <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Import Users</h6>
         </div>
-    </form>
-</div>
+        <form method="POST" action="/admin/users/import" enctype="multipart/form-data">
+            @csrf
+            <div class="row g-3 align-items-center">
+                <div class="col-md-8">
+                    <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    <small class="text-muted">Format Excel: name, username, email, password, role (header row required)</small>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-upload me-1"></i> Import Excel
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 
     <!-- TABLE -->
     <div class="card p-4">
-        <h6 class="mb-3">Data User</h6>
-
+        <h6 class="mb-3">Data User ({{ $users->count() }} total)</h6>
         <div class="table-responsive">
             <table class="table align-middle table-hover">
                 <thead>
                     <tr>
                         <th>Nama</th>
                         <th>Email</th>
-                        <th>Password</th>
                         <th>Role</th>
                         <th>Kelas</th>
+                        <th>Status</th>
                         <th class="text-end">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($users as $user)
-                        <tr>
-                            <td>{{ $user->name }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->plain_password ?? 'N/A' }}</td>
-                            <td>{{ $user->role }}</td>
-                            <td>{{ $user->kelas ?? '-' }}</td>
-                            <td class="text-end">
-                                <a href="/admin/users/{{ $user->id }}/edit" class="btn btn-sm btn-light">Edit</a>
+                    <tr>
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td><span class="badge bg-{{ $user->role == 'admin' ? 'primary' : 'secondary' }}">{{ ucfirst($user->role) }}</span></td>
+                        <td>{{ $user->kelas ?? '-' }}</td>
+                        <td>
+                            @if($user->current_session_id)
+                                <span class="badge badge-online">
+                                    <i class="fas fa-circle me-1"></i>Online
+                                </span>
+                            @else
+                                <span class="badge badge-offline">
+                                    <i class="fas fa-circle me-1"></i>Offline
+                                </span>
+                            @endif
+                        </td>
+                        <td class="text-end">
+                            @if($user->current_session_id)
+                            <form method="POST" action="/admin/users/{{ $user->id }}/reset-session" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-warning" 
+                                    onclick="return confirm('Reset sesi {{ $user->name }}? User akan auto logout.')">
+                                    <i class="fas fa-power-off"></i> Reset Sesi
+                                </button>
+                            </form>
+                            @endif
+                            <a href="/admin/users/{{ $user->id }}/edit" class="btn btn-sm btn-light">Edit</a>
+                            @if($user->trashed())
                                 <form method="POST" action="/admin/users/{{ $user->id }}" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-light text-danger"
-                                        onclick="return confirm('Yakin hapus user ini?')">
+                                    <button type="submit" class="btn btn-sm btn-light text-success" onclick="return confirm('Yakin restore?')">
+                                        Restore
+                                    </button>
+                                </form>
+                            @else
+                                <form method="POST" action="/admin/users/{{ $user->id }}" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-light text-danger" onclick="return confirm('Yakin hapus {{ $user->name }}?')">
                                         Hapus
                                     </button>
                                 </form>
-                            </td>
-                        </tr>
+                            @endif
+                        </td>
+                    </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
     </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -171,8 +171,8 @@
     <div class="sidebar-title">CBT Admin</div>
 
     <a href="/admin"><i class="fas fa-chart-line"></i> Dashboard</a>
-    <a href="/admin/soal"><i class="fas fa-file-alt"></i> Kelola Soal</a>
     <a href="/admin/exam"><i class="fas fa-clipboard-list"></i> Kelola Ujian</a>
+    <a href="/admin/soal"><i class="fas fa-file-alt"></i> Kelola Soal</a>
     <a href="/admin/users"><i class="fas fa-users"></i> Kelola User</a>
     <a href="/admin/schedule"><i class="fas fa-calendar"></i> Jadwal Ujian</a>
     <a href="/admin/results" class="active"><i class="fas fa-chart-bar"></i> Monitoring Hasil</a>
@@ -232,9 +232,16 @@
         </form>
     </div>
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     @if (empty($examResults))
         <div class="card p-3">
-            <p class="text-muted mb-0">Belum ada hasil ujian.</p>
+            <p class="text-muted mb-0">Belum ada data ujian atau siswa.</p>
         </div>
     @else
         @foreach ($examResults as $examResult)
@@ -267,16 +274,28 @@
                                             <th>{{ $loop->index + 1 }}</th>
                                         @endforeach
                                         <th>Skor</th>
+                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($examResult['pgStudents'] as $student)
                                         <tr>
-                                            <td>{{ $student['user']->name }}</td>
+                                            <td>{{ $student['user']->name }}<br><small class="text-muted">{{ $student['user']->kelas }}</small></td>
                                             @foreach ($pgQuestionsPage as $q)
                                                 <td>{{ $student['pgAnswers'][$q['id']] ?? '-' }}</td>
                                             @endforeach
                                             <td><strong>{{ $student['score'] }}</strong></td>
+                                            <td>
+                                                @if($student['result_id'])
+                                                    <form method="POST" action="/admin/results/{{ $student['result_id'] }}" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Hapus data hasil {{ $student['user']->name }} untuk ujian ini?')">Reset</button>
+                                                    </form>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -300,10 +319,22 @@
                                         $answer = $student['essayAnswers']->firstWhere('question_id', $essayQ->id);
                                     @endphp
 
-                                    @if ($answer)
-                                        <div class="col-md-6 mb-3">
-                                            <strong>{{ $student['user']->name }}</strong> ({{ $student['score'] }})
+                                    <div class="col-md-6 mb-3">
+                                        <strong>{{ $student['user']->name }}</strong> 
+                                        <span class="badge {{ is_numeric($student['score']) && $student['score'] >= 0 ? 'bg-success' : 'bg-secondary' }}">
+                                            {{ $student['score'] }}
+                                        </span>
+                                        @if($student['result_id'])
+                                            <form method="POST" action="/admin/results/{{ $student['result_id'] }}" class="d-inline ms-2">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus data {{ $student['user']->name }}?')">
+                                                    <i class="fas fa-trash"></i> Reset
+                                                </button>
+                                            </form>
+                                        @endif
 
+                                        @if ($answer)
                                             <div class="p-2 bg-light rounded mt-1" style="font-size: 0.85rem;">
                                                 {{ Str::limit($answer->answer, 150) }}
                                                 <button class="btn btn-sm btn-link p-0"
@@ -317,8 +348,12 @@
                                                     {{ $answer->answer }}
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endif
+                                        @else
+                                            <div class="p-2 bg-light rounded mt-1 text-muted" style="font-size: 0.85rem;">
+                                                Belum dijawab
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endforeach
                             </div>
                         </div>
